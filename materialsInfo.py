@@ -1,6 +1,6 @@
-lista = odb.materials.keys()
+list = odb.materials.keys()
 
-for tmp in lista:
+for tmp in list:
 	try:
 		test = odb.materials[tmp].name
 		print "Name: " + odb.materials[tmp].name
