@@ -3,6 +3,7 @@ list = odb.sections.keys()
 for tmp in list:
 	try:
 		test = odb.sections[tmp].name
+		print "SECTION:"
 		print "Name: " + odb.sections[tmp].name
 		print "Material: " + str(odb.sections[tmp].material)
 		print "Thickness: " + str(odb.sections[tmp].thickness)

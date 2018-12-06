@@ -6,7 +6,7 @@ from textRepr import*
 import datetime
 
 
-def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck):
+def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck):
 	odb = openOdb(fileName)
 	global odb
 	listMaterials = odb.materials.keys()
@@ -23,8 +23,19 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck):
 		if thermalCheck == 1:
 			thermalInfoFun(tmp)
 		print " "
-		print " "
-		print " "
+	if partsCheck == 1:
+		partsInfoFun()
+	if instancesCheck == 1:
+		instancesInfoFun()
+	if sectionsCheck == 1:
+		sectionsInfoFun()
+	if sectionCategoriesCheck == 1:
+		sectionCategoriesInfoFun()
+	if elementSetsCheck == 1:
+		elementSetsInfoFun()
+	print " "
+	print " "
+	print " "
 
 def basicInfoFun(material):
 	global odb
@@ -302,3 +313,104 @@ def thermalInfoFun(material):
 		print "    Temperature Dependency: " + str(odb.materials[material].specificHeat.temperatureDependency)
 	except AttributeError:
 		strangeVariable = 0
+
+def elementSetsInfoFun():
+	global odb
+	list = odb.rootAssembly.elementSets.keys()
+	for tmp in list:
+		try:
+			test = odb.rootAssembly.elementSets[tmp].name
+			print "ELEMENT SET: "
+			print "Name: " + odb.rootAssembly.elementSets[tmp].name
+			print "Instance Names: " + str(odb.rootAssembly.elementSets[tmp].instanceNames)
+			print "Is Internal: " + str(odb.rootAssembly.elementSets[tmp].isInternal)
+			print "Nodes: " + str(odb.rootAssembly.elementSets[tmp].nodes)
+			print " "
+		except AttributeError:
+			strangeVariable = 0
+
+def partsInfoFun():
+	list = odb.parts.keys()
+	for tmp in list:
+		try:
+			test = odb.parts[tmp].name
+			print "PART:"
+			print "Name: " + odb.parts[tmp].name
+			print "Analytic Surface: " + str(odb.parts[tmp].analyticSurface)
+			print "Embedded Space: " + str(odb.parts[tmp].embeddedSpace)
+			print "Type: " + str(odb.parts[tmp].type)
+			print " "
+		except AttributeError:
+			strangeVariable = 0
+
+def instancesInfoFun():
+	list = odb.rootAssembly.instances.keys()
+	for tmp in list:
+		try:
+			test = odb.rootAssembly.instances[tmp].name
+			print "INSTANCE: "
+			print "Name: " + odb.rootAssembly.instances[tmp].name
+			print "Analytic Surface: " + str(odb.rootAssembly.instances[tmp].analyticSurface)
+			print "Embedded Space: " + str(odb.rootAssembly.instances[tmp].embeddedSpace)
+			print "Type: " + str(odb.rootAssembly.instances[tmp].type)
+			list2 = odb.rootAssembly.instances[tmp].elementSets.keys()
+			for tmp2 in list2:		
+				try:
+					test = odb.rootAssembly.instances[tmp].elementSets[tmp2].name
+					print "ELEMENT SET:"
+					print "    Name: " + odb.rootAssembly.instances[tmp].elementSets[tmp2].name
+					print "    Faces: " + str(odb.rootAssembly.instances[tmp].elementSets[tmp2].faces)
+					print "    Instance Names: " + str(odb.rootAssembly.instances[tmp].elementSets[tmp2].instanceNames)
+					print "    Instances: " + str(odb.rootAssembly.instances[tmp].elementSets[tmp2].instances)
+					print "    Is Internal: " + str(odb.rootAssembly.instances[tmp].elementSets[tmp2].isInternal)
+					print "    Nodes: " + str(odb.rootAssembly.instances[tmp].elementSets[tmp2].nodes)
+				except AttributeError:
+					strangeVariable = 0
+			number = len(odb.rootAssembly.instances[tmp].sectionAssignments)
+			for number in range(number):
+				try:
+					test = odb.rootAssembly.instances[tmp].sectionAssignments[number].sectionName
+					print "SECTION ASSIGMENT:"
+					print "    Section Name: " + odb.rootAssembly.instances[tmp].sectionAssignments[number].sectionName
+					print "    Offset: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].offset)
+					try:
+						test = odb.rootAssembly.instances[tmp].sectionAssignments[number].region.name
+						print "    REGION: "
+						print "        Name: " + odb.rootAssembly.instances[tmp].sectionAssignments[number].region.name
+						print "        Faces: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].region.faces)
+						print "        Instance Names: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].region.instanceNames)
+						print "        Instances: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].region.instances)
+						print "        Is Internal: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].region.isInternal)
+						print "        Nodes: " + str(odb.rootAssembly.instances[tmp].sectionAssignments[number].region.nodes)
+					except AttributeError:
+						strangeVariable = 0
+				except AttributeError:
+					strangeVariable = 0
+			print " "
+		except AttributeError:
+			strangeVariable = 0
+
+def sectionCategoriesInfoFun():
+	list = odb.sectionCategories.keys()
+	for tmp in list:
+		try:
+			test = odb.sectionCategories[tmp].name
+			print "SECTION CATEGORY:"
+			print "Name: " + odb.sectionCategories[tmp].name
+			print "Description: " + str(odb.sectionCategories[tmp].description)
+			print " "
+		except AttributeError:
+			strangeVariable = 0
+
+def sectionsInfoFun():
+	list = odb.sections.keys()
+	for tmp in list:
+		try:
+			test = odb.sections[tmp].name
+			print "SECTION:"
+			print "Name: " + odb.sections[tmp].name
+			print "Material: " + str(odb.sections[tmp].material)
+			print "Thickness: " + str(odb.sections[tmp].thickness)
+			print " "
+		except AttributeError:
+			strangeVariable = 0
