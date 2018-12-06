@@ -21,7 +21,7 @@ def generatePDF(list):
 			c.setFont('Helvetica',fontSize, leading=None)
 		c.drawString(50,beggining,list[tmp])
 		beggining += newLine
-	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 	c.showPage()
 	c.save()
 print "done"
