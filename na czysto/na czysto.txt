@@ -1,11 +1,20 @@
+import sys
+sys.path.append("C:\\temp\\skrypty\\myUtils")
+import myGetName
 from odbAccess import*
 from textRepr import*
+import datetime
+
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck):
 	odb = openOdb(fileName)
 	global odb
-	list = odb.materials.keys()
-	for tmp in list:
+	listMaterials = odb.materials.keys()
+	currentDate = datetime.datetime.now()
+	
+	myGetName.getName(odb.name)
+	print "Date: " + currentDate.strftime("%Y-%m-%d %H:%M")
+	for tmp in listMaterials:
 		basicInfoFun(tmp)
 		if generalCheck == 1:
 			generalInfoFun(tmp)
