@@ -23,6 +23,7 @@ for tmp in list:
 						tmpString += str(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
 						tmpString += " for Whole Model" ###EWENTUALNIE DO ZMIANY JAK SIE OKAZE ZE JEST WIECEJ
 						plotsList.append(tmpString)
+						print "    " + tmpString
 					except AttributeError:
 						strangeVariable = 0
 			except AttributeError:
@@ -80,9 +81,48 @@ def makeScreenshot(plot):
     import connectorBehavior
     session.printToFile(fileName='C:/temp/skrypty/allScreens/' + plot, format=PNG, canvasObjects=(session.viewports['Viewport: 1'], ))
 
-for tmp in range(len(plotsList)):
-	viewPlot(plotsList[tmp],odbNameTmp)
-	makeScreenshot(str(tmp))
+def viewPlot2(plot,odbName):
+    import section
+    import regionToolset
+    import displayGroupMdbToolset as dgm
+    import part
+    import material
+    import assembly
+    import step
+    import interaction
+    import load
+    import mesh
+    import optimization
+    import job
+    import sketch
+    import visualization
+    import xyPlot
+    import displayGroupOdbToolset as dgo
+    import connectorBehavior
+    o7 = session.odbs[odbName]
+    session.viewports['Viewport: 1'].setValues(displayedObject=o7)
+    odb = session.odbs[odbName]
+    xy1 = xyPlot.XYDataFromHistory(odb=odb, 
+        outputVariableName=plot, 
+        suppressQuery=True, __linkedVpName__='Viewport: 1')
+    c1 = session.Curve(xyData=xy1)
+    xyp = session.XYPlot('XYPlot-1')
+    chartName = xyp.charts.keys()[0]
+    chart = xyp.charts[chartName]
+    chart.setValues(curvesToPlot=(c1, ), )
+    session.viewports['Viewport: 1'].setValues(displayedObject=xyp)
+    session.mdbData.summary()
+
+if len(session.xyPlots) > 0:
+	for tmp in range(0,len(plotsList)):
+		viewPlot(plotsList[tmp],odbNameTmp)
+		makeScreenshot(str(tmp))
+else:
+	viewPlot2(plotsList[0],odbNameTmp)
+	makeScreenshot(str(0))
+	for tmp in range(1,len(plotsList)):
+		viewPlot(plotsList[tmp],odbNameTmp)
+		makeScreenshot(str(tmp))
 
 
 
