@@ -1,9 +1,12 @@
 import sys
 sys.path.append("C:\\temp\\skrypty\\myUtils")
-import myGetName
 from odbAccess import*
 from textRepr import*
 import datetime
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import portrait
+from reportlab.platypus import Image
 
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck):
@@ -11,18 +14,21 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	global odb
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
+	stringList = []
 	
-	myGetName.getName(odb.name)
-	print "Date: " + currentDate.strftime("%Y-%m-%d %H:%M")
+	stringList.append(getName(odb.name))
+	stringList.append("Date: " + currentDate.strftime("%Y-%m-%d %H:%M"))
+	stringList.append(" ")
 	for tmp in listMaterials:
-		basicInfoFun(tmp)
-		if generalCheck == 1:
-			generalInfoFun(tmp)
-		if mechanicalCheck == 1:
-			mechanicalInfoFun(tmp)
-		if thermalCheck == 1:
-			thermalInfoFun(tmp)
-		print " "
+		if generalCheck == 1 or mechanicalCheck == 1 or thermalCheck == 1:
+			basicInfoFun(tmp,stringList)
+			if generalCheck == 1:
+				generalInfoFun(tmp,stringList)
+			if mechanicalCheck == 1:
+				mechanicalInfoFun(tmp)
+			if thermalCheck == 1:
+				thermalInfoFun(tmp)
+			stringList.append(" ")
 	if partsCheck == 1:
 		partsInfoFun()
 	if instancesCheck == 1:
@@ -36,55 +42,60 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	print " "
 	print " "
 	print " "
+	generatePDF(stringList)
 
-def basicInfoFun(material):
+def basicInfoFun(material,list):
 	global odb
 	try:
 		test = odb.materials[material].name
-		print "Name: " + odb.materials[material].name
+		list.append("MATERIAL:")
+		list.append("Name: " + odb.materials[material].name)
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].description
-		print "Description: " + odb.materials[material].description
+		list.append("Description: " + odb.materials[material].description)
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].materialIdentifier
-		print "Material Identifier: " + odb.materials[material].materialIdentifier
+		list.append("Material Identifier: " + odb.materials[material].materialIdentifier)
 	except AttributeError:
 		strangeVariable = 0
 
-def generalInfoFun(material):
+def generalInfoFun(material,list):
 	global odb
 	try:
 		test = odb.materials[material].density.dependencies
-		print "Density:"
-		print "    Dependencies: " + str(odb.materials[material].density.dependencies)
-		print "    Distribution Type: " + str(odb.materials[material].density.distributionType)
-		print "    Field Name: " + odb.materials[material].density.fieldName
-		print "    Temperature dependency: " + str(odb.materials[material].density.temperatureDependency)
-		print "    Table: " + str(odb.materials[material].density.table)
+		list.append("Density:")
+		list.append("    Dependencies: " + str(odb.materials[material].density.dependencies))
+		list.append("    Distribution Type: " + str(odb.materials[material].density.distributionType))
+		list.append("    Field Name: " + odb.materials[material].density.fieldName)
+		list.append("    Temperature dependency: " + str(odb.materials[material].density.temperatureDependency))
+		#list.append("    Table: " + str(odb.materials[material].density.table))
+		list.append("    Table:")
+		printTable(str(odb.materials[material].density.table),list)
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].depvar.deleteVar
-		print "Depvar:"
-		print "    Delete Var: " + str(odb.materials[material].depvar.deleteVar)
-		print "    N: " + str(odb.materials[material].depvar.n)
+		list.append("Depvar:")
+		list.append("    Delete Var: " + str(odb.materials[material].depvar.deleteVar))
+		list.append("    N: " + str(odb.materials[material].depvar.n))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].userMaterial.mechanicalConstants
-		print "User Material:"
-		print "    Mechanical Constants: " + str(odb.materials[material].userMaterial.mechanicalConstants)
-		print "    Thermal Constants: " + str(odb.materials[material].userMaterial.thermalConstants)
-		print "    Type: " + str(odb.materials[material].userMaterial.type)
-		print "    Unsymm: " + str(odb.materials[material].userMaterial.unsymm)
+		list.append("User Material:")
+		list.append("    Mechanical Constants: " + str(odb.materials[material].userMaterial.mechanicalConstants))
+		printTableUserMaterial(odb.materials[material].userMaterial.mechanicalConstants,list)
+		list.append("    Thermal Constants: " + str(odb.materials[material].userMaterial.thermalConstants))
+		list.append("    Type: " + str(odb.materials[material].userMaterial.type))
+		list.append("    Unsymm: " + str(odb.materials[material].userMaterial.unsymm))
 	except AttributeError:
 		strangeVariable = 0
 
@@ -414,3 +425,54 @@ def sectionsInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
+
+def generatePDF(list):
+	pageNumber = 1
+	beggining = 50
+	fontSize = 14
+	newLine = fontSize + 4
+	c = canvas.Canvas("skrypty\\TestPDF.pdf",pagesize=portrait(A4),bottomup=0)
+	c.setFont('Helvetica',fontSize, leading=None)
+	for tmp in range(len(list)):
+		if beggining >= 765:
+			c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+			pageNumber += 1
+			c.showPage()
+			beggining = 50
+			c.setFont('Helvetica',fontSize, leading=None)
+		c.drawString(50,beggining,list[tmp])
+		beggining += newLine
+	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+	c.showPage()
+	c.save()
+	print "done"
+
+def getName(string):
+	length = len(string)
+	tmp = ""
+	for i in range(length-1,0,-1):
+		if string[i] == "/":
+			for j in range(i+1,length-4):
+				tmp += string[j]
+			break
+	return tmp
+
+def printTable(table,list):
+	counter = 0
+	left = 0
+	right = 0
+	tmp = ""
+	while (counter < len(table) - 2):
+		counter += 1
+		if table[counter] == "(":
+			left = counter
+		if table[counter] == ")":
+			right = counter
+			for i in range(left + 1,right):
+				tmp += table[i]
+			list.append(tmp)
+			tmp = ""
+
+def printTableUserMaterial(table,list):
+	for tmp in range(len(table)):
+		list.append(str(table[tmp]))

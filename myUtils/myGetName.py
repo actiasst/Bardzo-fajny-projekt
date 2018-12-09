@@ -6,4 +6,4 @@ def getName(string):
 			for j in range(i+1,length-4):
 				tmp += string[j]
 			break
-	print tmp
+	return tmp

@@ -24,4 +24,4 @@ def generatePDF(list):
 	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 	c.showPage()
 	c.save()
-print "done"
+	print "done"
