@@ -28,7 +28,7 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 			if generalCheck == 1:
 				generalInfoFun(tmp,stringList)
 			if mechanicalCheck == 1:
-				mechanicalInfoFun(tmp)
+				mechanicalInfoFun(tmp,stringList)
 			if thermalCheck == 1:
 				thermalInfoFun(tmp)
 			stringList.append(" ")
@@ -48,7 +48,7 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
 	generatePDF(stringList,pdfName)
-
+########################################################################################################################## DONE
 def basicInfoFun(material,list):
 	global odb
 	try:
@@ -69,23 +69,22 @@ def basicInfoFun(material,list):
 		list.append("Material Identifier: " + odb.materials[material].materialIdentifier)
 	except AttributeError:
 		strangeVariable = 0
-
+########################################################################################################################## DONE
 def generalInfoFun(material,list):
 	global odb
+	global destinationFileName2
 	try:
-		global destinationFileName2
 		test = odb.materials[material].density.dependencies
 		list.append("Density:")
 		list.append("    Dependencies: " + str(odb.materials[material].density.dependencies))
 		list.append("    Distribution Type: " + str(odb.materials[material].density.distributionType))
 		list.append("    Field Name: " + odb.materials[material].density.fieldName)
 		list.append("    Temperature dependency: " + str(odb.materials[material].density.temperatureDependency))
-		#list.append("    Table: " + str(odb.materials[material].density.table))
-		list.append("    Table:")
-		printTable(str(odb.materials[material].density.table),list)
+		list.append("    Table: " + str(odb.materials[material].density.table))
 		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\density"
 		createDirectory(pathTmp)
 		printTableToTXT(str(odb.materials[material].density.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].density.table),pathTmp + "\\" + odb.materials[material].name)
 	except AttributeError:
 		strangeVariable = 0
 
@@ -100,40 +99,54 @@ def generalInfoFun(material,list):
 	try:
 		test = odb.materials[material].userMaterial.mechanicalConstants
 		list.append("User Material:")
-		list.append("    Mechanical Constants: " + str(odb.materials[material].userMaterial.mechanicalConstants))
-		printTableUserMaterial(odb.materials[material].userMaterial.mechanicalConstants,list)
-		list.append("    Thermal Constants: " + str(odb.materials[material].userMaterial.thermalConstants))
+		list.append("    Mechanical Constants: " + "see in directory \"mechanicalConstants\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\mechanicalConstants"
+		createDirectory(pathTmp)
+		printTable2(odb.materials[material].userMaterial.mechanicalConstants,pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Thermal Constants: " + "see in directory \"thermalConstants\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\thermalConstants"
+		createDirectory(pathTmp)
+		printTable2(odb.materials[material].userMaterial.thermalConstants,pathTmp + "\\" + odb.materials[material].name)
 		list.append("    Type: " + str(odb.materials[material].userMaterial.type))
 		list.append("    Unsymm: " + str(odb.materials[material].userMaterial.unsymm))
 	except AttributeError:
 		strangeVariable = 0
-
-def mechanicalInfoFun(material):
+##########################################################################################################################
+def mechanicalInfoFun(material,list):
 	global odb
+	global destinationFileName2
 	try:
 		test = odb.materials[material].elastic.dependencies
-		print "Elastic:"
-		print "    Dependencies: " + str(odb.materials[material].elastic.dependencies)
-		print "    Moduli: " + str(odb.materials[material].elastic.moduli)
-		print "    No Compression: " + str(odb.materials[material].elastic.noCompression)
-		print "    No Tension: " + str(odb.materials[material].elastic.noTension)
-		print "    Temperature Dependency: " + str(odb.materials[material].elastic.temperatureDependency)
-		print "    Type: " + str(odb.materials[material].elastic.type)
-		print "    Table: " + str(odb.materials[material].elastic.table)
+		list.append("Elastic:")
+		list.append("    Dependencies: " + str(odb.materials[material].elastic.dependencies))
+		list.append("    Moduli: " + str(odb.materials[material].elastic.moduli))
+		list.append("    No Compression: " + str(odb.materials[material].elastic.noCompression))
+		list.append("    No Tension: " + str(odb.materials[material].elastic.noTension))
+		list.append("    Temperature Dependency: " + str(odb.materials[material].elastic.temperatureDependency))
+		list.append("    Type: " + str(odb.materials[material].elastic.type))
+		list.append("    Table: " + "see in directory \"elastic\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\elastic"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].elastic.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].elastic.table),pathTmp + "\\" + odb.materials[material].name)
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].plastic.dataType
-		print "Plastic:"
-		print "    Data Type: " + str(odb.materials[material].plastic.dataType)
-		print "    Dependencies: " + str(odb.materials[material].plastic.dependencies)
-		print "    Hardening: " + str(odb.materials[material].plastic.hardening)
-		print "    Num Backstresses: " + str(odb.materials[material].plastic.numBackstresses)
-		print "    Rate: " + str(odb.materials[material].plastic.rate)
-		print "    Strain Range Dependency: " + str(odb.materials[material].plastic.strainRangeDependency)
-		print "    Table: " + str(odb.materials[material].plastic.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].plastic.temperatureDependency)
+		list.append("Plastic:")
+		list.append("    Data Type: " + str(odb.materials[material].plastic.dataType))
+		list.append("    Dependencies: " + str(odb.materials[material].plastic.dependencies))
+		list.append("    Hardening: " + str(odb.materials[material].plastic.hardening))
+		list.append("    Num Backstresses: " + str(odb.materials[material].plastic.numBackstresses))
+		list.append("    Rate: " + str(odb.materials[material].plastic.rate))
+		list.append("    Strain Range Dependency: " + str(odb.materials[material].plastic.strainRangeDependency))
+		list.append("    Table: " + "see in directory \"plastic\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\plastic"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].plastic.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].plastic.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].plastic.temperatureDependency))
 	except AttributeError:
 		strangeVariable = 0
 
@@ -285,26 +298,34 @@ def mechanicalInfoFun(material):
 
 	try:
 		test = odb.materials[material].eos.dependencies
-		print"Eos:"
-		print "    Dependencies: " + str(odb.materials[material].eos.dependencies)
-		print "    Detonation Energy: " + str(odb.materials[material].eos.detonationEnergy)
+		list.append("Eos:")
+		list.append("    Dependencies: " + str(odb.materials[material].eos.dependencies))
+		list.append("    Detonation Energy: " + str(odb.materials[material].eos.detonationEnergy))
 		try:
 			test = odb.materials[material].eos.detonationPoint.table
-			print "    Detonation Point: "
-			print "    	Table: " + str(odb.materials[material].eos.detonationPoint.table)
+			list.append("    Detonation Point: ")
+			list.append("        Table: " + str(odb.materials[material].eos.detonationPoint.table))
 		except AttributeError:
 			strangeVariable = 0
-		print "    Gas Specific Table: " + str(odb.materials[material].eos.gasSpecificTable)
-		print "    Gas Table: " + str(odb.materials[material].eos.gasTable)
-		print "    Reaction Table: " + str(odb.materials[material].eos.reactionTable)
+		list.append("    Gas Specific Table: " + "see in directory \"eos_gasSpecificTable\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\eos_gasSpecificTable"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].eos.gasSpecificTable),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].eos.gasSpecificTable),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Gas Table: " + "see in directory \"eos_gasTable\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\eos_gasTable"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].eos.gasTable),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].eos.gasTable),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Reaction Table: " + str(odb.materials[material].eos.reactionTable))
 		print "    Solid Table: " + str(odb.materials[material].eos.solidTable)
 		print "    Table: " + str(odb.materials[material].eos.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].eos.temperatureDependency)
-		print "    Type: " + str(odb.materials[material].eos.type)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].eos.temperatureDependency))
+		list.append("    Type: " + str(odb.materials[material].eos.type))
 	except AttributeError:
 		strangeVariable = 0
 
-
+##########################################################################################################################
 def thermalInfoFun(material):
 	global odb
 	try:
@@ -333,7 +354,7 @@ def thermalInfoFun(material):
 		print "    Temperature Dependency: " + str(odb.materials[material].specificHeat.temperatureDependency)
 	except AttributeError:
 		strangeVariable = 0
-
+##########################################################################################################################
 def elementSetsInfoFun():
 	global odb
 	list = odb.rootAssembly.elementSets.keys()
@@ -348,7 +369,7 @@ def elementSetsInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
-
+##########################################################################################################################
 def partsInfoFun():
 	list = odb.parts.keys()
 	for tmp in list:
@@ -362,7 +383,7 @@ def partsInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
-
+##########################################################################################################################
 def instancesInfoFun():
 	list = odb.rootAssembly.instances.keys()
 	for tmp in list:
@@ -409,7 +430,7 @@ def instancesInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
-
+##########################################################################################################################
 def sectionCategoriesInfoFun():
 	list = odb.sectionCategories.keys()
 	for tmp in list:
@@ -421,7 +442,7 @@ def sectionCategoriesInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
-
+##########################################################################################################################
 def sectionsInfoFun():
 	list = odb.sections.keys()
 	for tmp in list:
@@ -434,7 +455,7 @@ def sectionsInfoFun():
 			print " "
 		except AttributeError:
 			strangeVariable = 0
-
+########################################################################################################################## PROPABLY DONE
 def generatePDF(list,name):
 	pageNumber = 1
 	beggining = 50
@@ -454,8 +475,8 @@ def generatePDF(list,name):
 	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 	c.showPage()
 	c.save()
-	print "done"
-
+	print "Exported to " + name
+########################################################################################################################## DONE
 def getName(string):
 	length = len(string)
 	tmp = ""
@@ -465,7 +486,7 @@ def getName(string):
 				tmp += string[j]
 			break
 	return tmp
-
+########################################################################################################################## DONE
 def printTable(table,list):
 	counter = 0
 	left = 0
@@ -481,11 +502,16 @@ def printTable(table,list):
 				tmp += table[i]
 			list.append(tmp)
 			tmp = ""
-
-def printTableUserMaterial(table,list):
+########################################################################################################################## DONE
+def printTable2(table,name):
+	file = open(name+".txt","w")
+	file2 = open(name+".csv","w")
 	for tmp in range(len(table)):
-		list.append(str(table[tmp]))
-
+		file.write(str(table[tmp])+"\n")
+		file2.write(str(table[tmp])+"\n")
+	file.close()
+	file2.close()
+########################################################################################################################## DONE
 def printTableToTXT(table,name):
 	counter = 0
 	left = 0
@@ -504,7 +530,26 @@ def printTableToTXT(table,name):
 			file.write(tmp)
 			tmp = ""	
 	file.close()
-
+########################################################################################################################## DONE
+def printTableToCSV(table,name):
+	counter = 0
+	left = 0
+	right = 0
+	tmp = ""
+	file = open(name+".csv","w")
+	while (counter < len(table) - 2):
+		counter += 1
+		if table[counter] == "(":
+			left = counter
+		if table[counter] == ")":
+			right = counter
+			for i in range(left + 1,right):
+				tmp += table[i]
+			tmp+="\n"
+			file.write(tmp)
+			tmp = ""	
+	file.close()
+########################################################################################################################## DONE
 def createDirectory(path):
 	if not os.path.exists(path):
 		os.makedirs(path)
