@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append("C:\\temp\\skrypty\\myUtils")
 from odbAccess import*
 from textRepr import*
@@ -9,9 +10,11 @@ from reportlab.lib.pagesizes import portrait
 from reportlab.platypus import Image
 
 
-def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck):
+def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName):
 	odb = openOdb(fileName)
 	global odb
+	destinationFileName2 = destinationFileName
+	global destinationFileName2
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
@@ -42,7 +45,9 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	print " "
 	print " "
 	print " "
-	generatePDF(stringList)
+	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
+	createDirectory(destinationFileName + "\\" + getName(odb.name))
+	generatePDF(stringList,pdfName)
 
 def basicInfoFun(material,list):
 	global odb
@@ -68,6 +73,7 @@ def basicInfoFun(material,list):
 def generalInfoFun(material,list):
 	global odb
 	try:
+		global destinationFileName2
 		test = odb.materials[material].density.dependencies
 		list.append("Density:")
 		list.append("    Dependencies: " + str(odb.materials[material].density.dependencies))
@@ -77,6 +83,9 @@ def generalInfoFun(material,list):
 		#list.append("    Table: " + str(odb.materials[material].density.table))
 		list.append("    Table:")
 		printTable(str(odb.materials[material].density.table),list)
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\density"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].density.table),pathTmp + "\\" + odb.materials[material].name)
 	except AttributeError:
 		strangeVariable = 0
 
@@ -426,12 +435,12 @@ def sectionsInfoFun():
 		except AttributeError:
 			strangeVariable = 0
 
-def generatePDF(list):
+def generatePDF(list,name):
 	pageNumber = 1
 	beggining = 50
 	fontSize = 14
 	newLine = fontSize + 4
-	c = canvas.Canvas("skrypty\\TestPDF.pdf",pagesize=portrait(A4),bottomup=0)
+	c = canvas.Canvas(name,pagesize=portrait(A4),bottomup=0)
 	c.setFont('Helvetica',fontSize, leading=None)
 	for tmp in range(len(list)):
 		if beggining >= 765:
@@ -476,3 +485,26 @@ def printTable(table,list):
 def printTableUserMaterial(table,list):
 	for tmp in range(len(table)):
 		list.append(str(table[tmp]))
+
+def printTableToTXT(table,name):
+	counter = 0
+	left = 0
+	right = 0
+	tmp = ""
+	file = open(name+".txt","w")
+	while (counter < len(table) - 2):
+		counter += 1
+		if table[counter] == "(":
+			left = counter
+		if table[counter] == ")":
+			right = counter
+			for i in range(left + 1,right):
+				tmp += table[i]
+			tmp+="\n"
+			file.write(tmp)
+			tmp = ""	
+	file.close()
+
+def createDirectory(path):
+	if not os.path.exists(path):
+		os.makedirs(path)
