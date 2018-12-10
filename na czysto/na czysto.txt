@@ -9,7 +9,8 @@ from reportlab.lib.pagesizes import portrait
 from reportlab.platypus import Image
 
 
-def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName):
+def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName,
+	showFramesCheck,showAllCheck,fromFrame,toFrame):
 	odb = openOdb(fileName)
 	global odb
 	print "Exporting..."
@@ -42,6 +43,11 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 		sectionCategoriesInfoFun(stringList)
 	if elementSetsCheck == 1:
 		elementSetsInfoFun(stringList)
+	if showFramesCheck == 1:
+		if showAllCheck == "All":
+			stepsInfoFun(stringList)
+		else:
+			stepsInfoFun2(stringList,fromFrame,toFrame)
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
 	generatePDF(stringList,pdfName)
@@ -611,3 +617,116 @@ def printTableToCSV(table,name):
 def createDirectory(path):
 	if not os.path.exists(path):
 		os.makedirs(path)
+
+def stepsInfoFun(stringList):
+	counter = 0.
+	list = odb.steps.keys()
+	for tmp in list:
+		try:
+			test = odb.steps[tmp].name
+			stringList.append("STEP:")
+			stringList.append("Name: " + odb.steps[tmp].name)
+			stringList.append("Acoustic Mass: " + str(odb.steps[tmp].acousticMass))
+			stringList.append("Acoustic Mass Center: " + str(odb.steps[tmp].acousticMassCenter))
+			stringList.append("Description: " + str(odb.steps[tmp].description))
+			stringList.append("Domain: " + str(odb.steps[tmp].domain))
+			stringList.append("Procedure: " + str(odb.steps[tmp].procedure))
+			stringList.append("Retained Eigen Modes: " + str(odb.steps[tmp].retainedEigenModes))
+			stringList.append("Time Period: " + str(odb.steps[tmp].timePeriod))
+			stringList.append("Total Time: " + str(odb.steps[tmp].totalTime))
+			print "Step progress:"
+			try:
+				for tmp2 in range(len(odb.steps[tmp].frames)):
+					stringList.append("FRAME")
+					stringList.append("    Frame Id: " + str(odb.steps[tmp].frames[tmp2].frameId))
+					stringList.append("    Description: " + str(odb.steps[tmp].frames[tmp2].description))
+					stringList.append("    Associated Frame: " + str(odb.steps[tmp].frames[tmp2].associatedFrame))
+					stringList.append("    Cyclic Mode Number: " + str(odb.steps[tmp].frames[tmp2].cyclicModeNumber))
+					stringList.append("    Domain: " + str(odb.steps[tmp].frames[tmp2].domain))
+					stringList.append("    Frame Value: " + str(odb.steps[tmp].frames[tmp2].frameValue))
+					stringList.append("    Frequency: " + str(odb.steps[tmp].frames[tmp2].frequency))
+					stringList.append("    Increment Number: " + str(odb.steps[tmp].frames[tmp2].incrementNumber))
+					stringList.append("    Is Imaginary: " + str(odb.steps[tmp].frames[tmp2].isImaginary))
+					stringList.append("    Load Case: " + str(odb.steps[tmp].frames[tmp2].loadCase))
+					stringList.append("    Mode: " + str(odb.steps[tmp].frames[tmp2].mode))
+					try:
+						list3 = odb.steps[tmp].frames[tmp2].fieldOutputs.keys()
+						for tmp3 in list3:
+							test = odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].name
+							stringList.append("    FIELD OUTPUT:")
+							stringList.append("        Name: " + odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].name)
+							stringList.append("        Base Element Types: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].baseElementTypes))
+							stringList.append("        Component Labels: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].componentLabels))
+							stringList.append("        Description: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].description))
+							stringList.append("        Is Complex: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].isComplex))
+							stringList.append("        Type: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].type))
+							stringList.append("        Valid Invariants: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].validInvariants))
+					except AttributeError:
+						strangeVariable = 0
+					counter += 1.
+					progress =  counter / float(len(odb.steps[tmp].frames))
+					print str(progress*100.) + "%"
+			except AttributeError:
+				strangeVariable = 0
+			stringList.append(" ")
+			counter = 0.
+			print "Ending step."
+		except AttributeError:
+			strangeVariable = 0
+
+def stepsInfoFun2(stringList,fromFrame,toFrame):
+	counter = 0.
+	list = odb.steps.keys()
+	for tmp in list:
+		try:
+			test = odb.steps[tmp].name
+			stringList.append("STEP:")
+			stringList.append("Name: " + odb.steps[tmp].name)
+			stringList.append("Acoustic Mass: " + str(odb.steps[tmp].acousticMass))
+			stringList.append("Acoustic Mass Center: " + str(odb.steps[tmp].acousticMassCenter))
+			stringList.append("Description: " + str(odb.steps[tmp].description))
+			stringList.append("Domain: " + str(odb.steps[tmp].domain))
+			stringList.append("Procedure: " + str(odb.steps[tmp].procedure))
+			stringList.append("Retained Eigen Modes: " + str(odb.steps[tmp].retainedEigenModes))
+			stringList.append("Time Period: " + str(odb.steps[tmp].timePeriod))
+			stringList.append("Total Time: " + str(odb.steps[tmp].totalTime))
+			print "Step progress:"
+			try:
+				for tmp2 in range(fromFrame,toFrame+1):
+					stringList.append("FRAME")
+					stringList.append("    Frame Id: " + str(odb.steps[tmp].frames[tmp2].frameId))
+					stringList.append("    Description: " + str(odb.steps[tmp].frames[tmp2].description))
+					stringList.append("    Associated Frame: " + str(odb.steps[tmp].frames[tmp2].associatedFrame))
+					stringList.append("    Cyclic Mode Number: " + str(odb.steps[tmp].frames[tmp2].cyclicModeNumber))
+					stringList.append("    Domain: " + str(odb.steps[tmp].frames[tmp2].domain))
+					stringList.append("    Frame Value: " + str(odb.steps[tmp].frames[tmp2].frameValue))
+					stringList.append("    Frequency: " + str(odb.steps[tmp].frames[tmp2].frequency))
+					stringList.append("    Increment Number: " + str(odb.steps[tmp].frames[tmp2].incrementNumber))
+					stringList.append("    Is Imaginary: " + str(odb.steps[tmp].frames[tmp2].isImaginary))
+					stringList.append("    Load Case: " + str(odb.steps[tmp].frames[tmp2].loadCase))
+					stringList.append("    Mode: " + str(odb.steps[tmp].frames[tmp2].mode))
+					try:
+						list3 = odb.steps[tmp].frames[tmp2].fieldOutputs.keys()
+						for tmp3 in list3:
+							test = odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].name
+							stringList.append("    FIELD OUTPUT:")
+							stringList.append("        Name: " + odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].name)
+							stringList.append("        Base Element Types: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].baseElementTypes))
+							stringList.append("        Component Labels: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].componentLabels))
+							stringList.append("        Description: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].description))
+							stringList.append("        Is Complex: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].isComplex))
+							stringList.append("        Type: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].type))
+							stringList.append("        Valid Invariants: " + str(odb.steps[tmp].frames[tmp2].fieldOutputs[tmp3].validInvariants))
+					except AttributeError:
+						strangeVariable = 0
+					counter += 1.
+					progress =  counter / float(toFrame+1)
+					print str(progress*100.) + "%"
+			except AttributeError:
+				strangeVariable = 0
+			stringList.append(" ")
+			counter = 0.
+			print "Ending step."
+		except AttributeError:
+			strangeVariable = 0
+
