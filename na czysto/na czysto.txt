@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append("C:\\temp\\skrypty\\myUtils")
 from odbAccess import*
 from textRepr import*
 import datetime
@@ -13,6 +12,7 @@ from reportlab.platypus import Image
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName):
 	odb = openOdb(fileName)
 	global odb
+	print "Exporting..."
 	destinationFileName2 = destinationFileName
 	global destinationFileName2
 	listMaterials = odb.materials.keys()
@@ -30,7 +30,7 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 			if mechanicalCheck == 1:
 				mechanicalInfoFun(tmp,stringList)
 			if thermalCheck == 1:
-				thermalInfoFun(tmp)
+				thermalInfoFun(tmp,stringList)
 			stringList.append(" ")
 	if partsCheck == 1:
 		partsInfoFun()
@@ -111,7 +111,7 @@ def generalInfoFun(material,list):
 		list.append("    Unsymm: " + str(odb.materials[material].userMaterial.unsymm))
 	except AttributeError:
 		strangeVariable = 0
-##########################################################################################################################
+########################################################################################################################## DONE
 def mechanicalInfoFun(material,list):
 	global odb
 	global destinationFileName2
@@ -152,147 +152,183 @@ def mechanicalInfoFun(material,list):
 
 	try:
 		test = odb.materials[material].porousMetalPlasticity.dependencies
-		print"Porous Metal Plasticity:"
-		print "    Dependencies: " + str(odb.materials[material].porousMetalPlasticity.dependencies)
-		print "    Relative Density: " + str(odb.materials[material].porousMetalPlasticity.relativeDensity)
-		print "    Table: " + str(odb.materials[material].porousMetalPlasticity.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].porousMetalPlasticity.temperatureDependency)
+		list.append("Porous Metal Plasticity:")
+		list.append("    Dependencies: " + str(odb.materials[material].porousMetalPlasticity.dependencies))
+		list.append("    Relative Density: " + str(odb.materials[material].porousMetalPlasticity.relativeDensity))
+		list.append("    Table: " + "see in directory \"porousMetalPlasticity\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\porousMetalPlasticity"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].porousMetalPlasticity.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].porousMetalPlasticity.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].porousMetalPlasticity.temperatureDependency))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].ductileDamageInitiation.alpha
-		print"Ductile Damage Initiation:"
-		print "    Alpha: " + str(odb.materials[material].ductileDamageInitiation.alpha)
+		list.append("Ductile Damage Initiation:")
+		list.append("    Alpha: " + str(odb.materials[material].ductileDamageInitiation.alpha))
 		try:
 			test = odb.materials[material].ductileDamageInitiation.damageEvolution.degradation
-			print "    Damage Evolution:"
-			print "        Degradation: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.degradation)
-			print "        Dependencies: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.dependencies)
-			print "        Mixed Mode Behavior: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.mixedModeBehavior)
-			print "        Mode Mix Ratio: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.modeMixRatio)
-			print "        Power: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.power)
-			print "        Softening: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.softening)
-			print "        Table: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.table)
-			print "        Temperature Dependency: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.temperatureDependency)
-			print "        Type: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.type)
+			list.append("    Damage Evolution:")
+			list.append("        Degradation: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.degradation))
+			list.append("        Dependencies: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.dependencies))
+			list.append("        Mixed Mode Behavior: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.mixedModeBehavior))
+			list.append("        Mode Mix Ratio: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.modeMixRatio))
+			list.append("        Power: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.power))
+			list.append("        Softening: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.softening))
+			list.append("        Table: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.table))
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\ductileDamageInitiation_damageEvolution"
+			createDirectory(pathTmp)
+			printTableToTXT(str(odb.materials[material].ductileDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			printTableToCSV(str(odb.materials[material].ductileDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			list.append("        Temperature Dependency: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.temperatureDependency))
+			list.append("        Type: " + str(odb.materials[material].ductileDamageInitiation.damageEvolution.type))
 		except AttributeError:
 			strangeVariable = 0
-		print "    Definition: " + str(odb.materials[material].ductileDamageInitiation.definition)
-		print "    Dependencies: " + str(odb.materials[material].ductileDamageInitiation.dependencies)
-		print "    Direction: " + str(odb.materials[material].ductileDamageInitiation.direction)
-		print "    Feq: " + str(odb.materials[material].ductileDamageInitiation.feq)
-		print "    Fnn: " + str(odb.materials[material].ductileDamageInitiation.fnn)
-		print "    Fnt: " + str(odb.materials[material].ductileDamageInitiation.fnt)
-		print "    Frequency: " + str(odb.materials[material].ductileDamageInitiation.frequency)
-		print "    Ks: " + str(odb.materials[material].ductileDamageInitiation.ks)
-		print "    Number Imperfections: " + str(odb.materials[material].ductileDamageInitiation.numberImperfections)
-		print "    Omega: " + str(odb.materials[material].ductileDamageInitiation.omega)
-		print "    Table: " + str(odb.materials[material].ductileDamageInitiation.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].ductileDamageInitiation.temperatureDependency)
-		print "    Tolerance: " + str(odb.materials[material].ductileDamageInitiation.tolerance)
+		list.append("    Definition: " + str(odb.materials[material].ductileDamageInitiation.definition))
+		list.append("    Dependencies: " + str(odb.materials[material].ductileDamageInitiation.dependencies))
+		list.append("    Direction: " + str(odb.materials[material].ductileDamageInitiation.direction))
+		list.append("    Feq: " + str(odb.materials[material].ductileDamageInitiation.feq))
+		list.append("    Fnn: " + str(odb.materials[material].ductileDamageInitiation.fnn))
+		list.append("    Fnt: " + str(odb.materials[material].ductileDamageInitiation.fnt))
+		list.append("    Frequency: " + str(odb.materials[material].ductileDamageInitiation.frequency))
+		list.append("    Ks: " + str(odb.materials[material].ductileDamageInitiation.ks))
+		list.append("    Number Imperfections: " + str(odb.materials[material].ductileDamageInitiation.numberImperfections))
+		list.append("    Omega: " + str(odb.materials[material].ductileDamageInitiation.omega))
+		list.append("    Table: " + "see in directory \"ductileDamageInitiation_table\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\ductileDamageInitiation_table"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].ductileDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].ductileDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].ductileDamageInitiation.temperatureDependency))
+		list.append("    Tolerance: " + str(odb.materials[material].ductileDamageInitiation.tolerance))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].maxsDamageInitiation.alpha
-		print"Maxs Damage Initiation:"
-		print "    Alpha: " + str(odb.materials[material].maxsDamageInitiation.alpha)
+		list.append("Maxs Damage Initiation:")
+		list.append("    Alpha: " + str(odb.materials[material].maxsDamageInitiation.alpha))
 		try:
 			test = odb.materials[material].maxsDamageInitiation.damageEvolution.degradation
-			print "    Damage Evolution:"
-			print "        Degradation: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.degradation)
-			print "        Dependencies: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.dependencies)
-			print "        Mixed Mode Behavior: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.mixedModeBehavior)
-			print "        Mode Mix Ratio: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.modeMixRatio)
-			print "        Power: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.power)
-			print "        Softening: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.softening)
-			print "        Table: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.table)
-			print "        Temperature Dependency: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.temperatureDependency)
-			print "        Type: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.type)
+			list.append("    Damage Evolution:")
+			list.append("        Degradation: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.degradation))
+			list.append("        Dependencies: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.dependencies))
+			list.append("        Mixed Mode Behavior: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.mixedModeBehavior))
+			list.append("        Mode Mix Ratio: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.modeMixRatio))
+			list.append("        Power: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.power))
+			list.append("        Softening: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.softening))
+			list.append("        Table: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.table))
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\maxsDamageInitiation_damageEvolution"
+			createDirectory(pathTmp)
+			printTableToTXT(str(odb.materials[material].maxsDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			printTableToCSV(str(odb.materials[material].maxsDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			list.append("        Temperature Dependency: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.temperatureDependency))
+			list.append("        Type: " + str(odb.materials[material].maxsDamageInitiation.damageEvolution.type))
 		except AttributeError:
 			strangeVariable = 0
-		print "    Definition: " + str(odb.materials[material].maxsDamageInitiation.definition)
-		print "    Dependencies: " + str(odb.materials[material].maxsDamageInitiation.dependencies)
-		print "    Direction: " + str(odb.materials[material].maxsDamageInitiation.direction)
-		print "    Feq: " + str(odb.materials[material].maxsDamageInitiation.feq)
-		print "    Fnn: " + str(odb.materials[material].maxsDamageInitiation.fnn)
-		print "    Fnt: " + str(odb.materials[material].maxsDamageInitiation.fnt)
-		print "    Frequency: " + str(odb.materials[material].maxsDamageInitiation.frequency)
-		print "    Ks: " + str(odb.materials[material].maxsDamageInitiation.ks)
-		print "    Number Imperfections: " + str(odb.materials[material].maxsDamageInitiation.numberImperfections)
-		print "    Omega: " + str(odb.materials[material].maxsDamageInitiation.omega)
-		print "    Table: " + str(odb.materials[material].maxsDamageInitiation.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].maxsDamageInitiation.temperatureDependency)
-		print "    Tolerance: " + str(odb.materials[material].maxsDamageInitiation.tolerance)
+		list.append("    Definition: " + str(odb.materials[material].maxsDamageInitiation.definition))
+		list.append("    Dependencies: " + str(odb.materials[material].maxsDamageInitiation.dependencies))
+		list.append("    Direction: " + str(odb.materials[material].maxsDamageInitiation.direction))
+		list.append("    Feq: " + str(odb.materials[material].maxsDamageInitiation.feq))
+		list.append("    Fnn: " + str(odb.materials[material].maxsDamageInitiation.fnn))
+		list.append("    Fnt: " + str(odb.materials[material].maxsDamageInitiation.fnt))
+		list.append("    Frequency: " + str(odb.materials[material].maxsDamageInitiation.frequency))
+		list.append("    Ks: " + str(odb.materials[material].maxsDamageInitiation.ks))
+		list.append("    Number Imperfections: " + str(odb.materials[material].maxsDamageInitiation.numberImperfections))
+		list.append("    Omega: " + str(odb.materials[material].maxsDamageInitiation.omega))
+		list.append("    Table: " + "see in directory \"maxsDamageInitiation_table\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\maxsDamageInitiation_table"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].maxsDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].maxsDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].maxsDamageInitiation.temperatureDependency))
+		list.append("    Tolerance: " + str(odb.materials[material].maxsDamageInitiation.tolerance))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].maxpsDamageInitiation.alpha
-		print"Maxps Damage Initiation:"
-		print "    Alpha: " + str(odb.materials[material].maxpsDamageInitiation.alpha)
+		list.append("Maxps Damage Initiation:")
+		list.append("    Alpha: " + str(odb.materials[material].maxpsDamageInitiation.alpha))
 		try:
 			test = odb.materials[material].maxpsDamageInitiation.damageEvolution.degradation
-			print "    Damage Evolution:"
-			print "        Degradation: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.degradation)
-			print "        Dependencies: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.dependencies)
-			print "        Mixed Mode Behavior: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.mixedModeBehavior)
-			print "        Mode Mix Ratio: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.modeMixRatio)
-			print "        Power: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.power)
-			print "        Softening: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.softening)
-			print "        Table: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.table)
-			print "        Temperature Dependency: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.temperatureDependency)
-			print "        Type: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.type)
+			list.append("    Damage Evolution:")
+			list.append("        Degradation: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.degradation))
+			list.append("        Dependencies: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.dependencies))
+			list.append("        Mixed Mode Behavior: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.mixedModeBehavior))
+			list.append("        Mode Mix Ratio: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.modeMixRatio))
+			list.append("        Power: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.power))
+			list.append("        Softening: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.softening))
+			list.append("        Table: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.table))
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\maxpsDamageInitiation_damageEvolution"
+			createDirectory(pathTmp)
+			printTableToTXT(str(odb.materials[material].maxpsDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			printTableToCSV(str(odb.materials[material].maxpsDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			list.append("        Temperature Dependency: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.temperatureDependency))
+			list.append("        Type: " + str(odb.materials[material].maxpsDamageInitiation.damageEvolution.type))
 		except AttributeError:
 			strangeVariable = 0
-		print "    Definition: " + str(odb.materials[material].maxpsDamageInitiation.definition)
-		print "    Dependencies: " + str(odb.materials[material].maxpsDamageInitiation.dependencies)
-		print "    Direction: " + str(odb.materials[material].maxpsDamageInitiation.direction)
-		print "    Feq: " + str(odb.materials[material].maxpsDamageInitiation.feq)
-		print "    Fnn: " + str(odb.materials[material].maxpsDamageInitiation.fnn)
-		print "    Fnt: " + str(odb.materials[material].maxpsDamageInitiation.fnt)
-		print "    Frequency: " + str(odb.materials[material].maxpsDamageInitiation.frequency)
-		print "    Ks: " + str(odb.materials[material].maxpsDamageInitiation.ks)
-		print "    Number Imperfections: " + str(odb.materials[material].maxpsDamageInitiation.numberImperfections)
-		print "    Omega: " + str(odb.materials[material].maxpsDamageInitiation.omega)
-		print "    Table: " + str(odb.materials[material].maxpsDamageInitiation.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].maxpsDamageInitiation.temperatureDependency)
-		print "    Tolerance: " + str(odb.materials[material].maxpsDamageInitiation.tolerance)
+		list.append("    Definition: " + str(odb.materials[material].maxpsDamageInitiation.definition))
+		list.append("    Dependencies: " + str(odb.materials[material].maxpsDamageInitiation.dependencies))
+		list.append("    Direction: " + str(odb.materials[material].maxpsDamageInitiation.direction))
+		list.append("    Feq: " + str(odb.materials[material].maxpsDamageInitiation.feq))
+		list.append("    Fnn: " + str(odb.materials[material].maxpsDamageInitiation.fnn))
+		list.append("    Fnt: " + str(odb.materials[material].maxpsDamageInitiation.fnt))
+		list.append("    Frequency: " + str(odb.materials[material].maxpsDamageInitiation.frequency))
+		list.append("    Ks: " + str(odb.materials[material].maxpsDamageInitiation.ks))
+		list.append("    Number Imperfections: " + str(odb.materials[material].maxpsDamageInitiation.numberImperfections))
+		list.append("    Omega: " + str(odb.materials[material].maxpsDamageInitiation.omega))
+		list.append("    Table: " + "see in directory \"maxpsDamageInitiation_table\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\maxpsDamageInitiation_table"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].maxpsDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].maxpsDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].maxpsDamageInitiation.temperatureDependency))
+		list.append("    Tolerance: " + str(odb.materials[material].maxpsDamageInitiation.tolerance))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].johnsonCookDamageInitiation.alpha
-		print"Johnson Cook DamageInitiation:"
-		print "    Alpha: " + str(odb.materials[material].johnsonCookDamageInitiation.alpha)
+		list.append("Johnson Cook DamageInitiation:")
+		list.append("    Alpha: " + str(odb.materials[material].johnsonCookDamageInitiation.alpha))
 		try:
 			test = odb.materials[material].johnsonCookDamageInitiation.damageEvolution.degradation
-			print "    Damage Evolution:"
-			print "        Degradation: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.degradation)
-			print "        Dependencies: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.dependencies)
-			print "        Mixed Mode Behavior: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.mixedModeBehavior)
-			print "        Mode Mix Ratio: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.modeMixRatio)
-			print "        Power: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.power)
-			print "        Softening: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.softening)
-			print "        Table: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.table)
-			print "        Temperature Dependency: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.temperatureDependency)
-			print "        Type: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.type)
+			list.append("    Damage Evolution:")
+			list.append("        Degradation: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.degradation))
+			list.append("        Dependencies: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.dependencies))
+			list.append("        Mixed Mode Behavior: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.mixedModeBehavior))
+			list.append("        Mode Mix Ratio: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.modeMixRatio))
+			list.append("        Power: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.power))
+			list.append("        Softening: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.softening))
+			list.append("        Table: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.table))
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\johnsonCookDamageInitiation_damageEvolution"
+			createDirectory(pathTmp)
+			printTableToTXT(str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			printTableToCSV(str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.table),pathTmp + "\\" + odb.materials[material].name)
+			list.append("        Temperature Dependency: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.temperatureDependency))
+			list.append("        Type: " + str(odb.materials[material].johnsonCookDamageInitiation.damageEvolution.type))
 		except AttributeError:
 			strangeVariable = 0
-		print "    Definition: " + str(odb.materials[material].johnsonCookDamageInitiation.definition)
-		print "    Dependencies: " + str(odb.materials[material].johnsonCookDamageInitiation.dependencies)
-		print "    Direction: " + str(odb.materials[material].johnsonCookDamageInitiation.direction)
-		print "    Feq: " + str(odb.materials[material].johnsonCookDamageInitiation.feq)
-		print "    Fnn: " + str(odb.materials[material].johnsonCookDamageInitiation.fnn)
-		print "    Fnt: " + str(odb.materials[material].johnsonCookDamageInitiation.fnt)
-		print "    Frequency: " + str(odb.materials[material].johnsonCookDamageInitiation.frequency)
-		print "    Ks: " + str(odb.materials[material].johnsonCookDamageInitiation.ks)
-		print "    Number Imperfections: " + str(odb.materials[material].johnsonCookDamageInitiation.numberImperfections)
-		print "    Omega: " + str(odb.materials[material].johnsonCookDamageInitiation.omega)
-		print "    Table: " + str(odb.materials[material].johnsonCookDamageInitiation.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].johnsonCookDamageInitiation.temperatureDependency)
-		print "    Tolerance: " + str(odb.materials[material].johnsonCookDamageInitiation.tolerance)
+		list.append("    Definition: " + str(odb.materials[material].johnsonCookDamageInitiation.definition))
+		list.append("    Dependencies: " + str(odb.materials[material].johnsonCookDamageInitiation.dependencies))
+		list.append("    Direction: " + str(odb.materials[material].johnsonCookDamageInitiation.direction))
+		list.append("    Feq: " + str(odb.materials[material].johnsonCookDamageInitiation.feq))
+		list.append("    Fnn: " + str(odb.materials[material].johnsonCookDamageInitiation.fnn))
+		list.append("    Fnt: " + str(odb.materials[material].johnsonCookDamageInitiation.fnt))
+		list.append("    Frequency: " + str(odb.materials[material].johnsonCookDamageInitiation.frequency))
+		list.append("    Ks: " + str(odb.materials[material].johnsonCookDamageInitiation.ks))
+		list.append("    Number Imperfections: " + str(odb.materials[material].johnsonCookDamageInitiation.numberImperfections))
+		list.append("    Omega: " + str(odb.materials[material].johnsonCookDamageInitiation.omega))
+		list.append("    Table: " + "see in directory \"johnsonCookDamageInitiation_table\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\johnsonCookDamageInitiation_table"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].johnsonCookDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].johnsonCookDamageInitiation.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].johnsonCookDamageInitiation.temperatureDependency))
+		list.append("    Tolerance: " + str(odb.materials[material].johnsonCookDamageInitiation.tolerance))
 	except AttributeError:
 		strangeVariable = 0
 
@@ -317,41 +353,62 @@ def mechanicalInfoFun(material,list):
 		createDirectory(pathTmp)
 		printTableToTXT(str(odb.materials[material].eos.gasTable),pathTmp + "\\" + odb.materials[material].name)
 		printTableToCSV(str(odb.materials[material].eos.gasTable),pathTmp + "\\" + odb.materials[material].name)
-		list.append("    Reaction Table: " + str(odb.materials[material].eos.reactionTable))
-		print "    Solid Table: " + str(odb.materials[material].eos.solidTable)
-		print "    Table: " + str(odb.materials[material].eos.table)
+		list.append("    Reaction Table: " + "see in directory \"eos_reactionTable\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\eos_reactionTable"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].eos.reactionTable),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].eos.reactionTable),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Solid Table: " + "see in directory \"eos_solidTable\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\eos_solidTable"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].eos.solidTable),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].eos.solidTable),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Table: " + "see in directory \"eos_table\"")
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\eos_table"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].eos.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].eos.table),pathTmp + "\\" + odb.materials[material].name)
 		list.append("    Temperature Dependency: " + str(odb.materials[material].eos.temperatureDependency))
 		list.append("    Type: " + str(odb.materials[material].eos.type))
 	except AttributeError:
 		strangeVariable = 0
 
-##########################################################################################################################
-def thermalInfoFun(material):
+########################################################################################################################## DONE
+def thermalInfoFun(material,list):
 	global odb
+	global destinationFileName2
 	try:
 		test = odb.materials[material].conductivity.dependencies
-		print "Conductivity:"
-		print "    Dependencies: " + str(odb.materials[material].conductivity.dependencies)
-		print "    Table: " + str(odb.materials[material].conductivity.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].conductivity.temperatureDependency)
-		print "    Type: " + str(odb.materials[material].conductivity.type)
+		list.append("Conductivity:")
+		list.append("    Dependencies: " + str(odb.materials[material].conductivity.dependencies))
+		list.append("    Table: " + str(odb.materials[material].conductivity.table))
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\conductivity"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].conductivity.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].conductivity.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].conductivity.temperatureDependency))
+		list.append("    Type: " + str(odb.materials[material].conductivity.type))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].inelasticHeatFraction.fraction
-		print"Inelastic Heat Fraction:"
-		print "    Fraction: " + str(odb.materials[material].inelasticHeatFraction.fraction)
+		list.append("Inelastic Heat Fraction:")
+		list.append("    Fraction: " + str(odb.materials[material].inelasticHeatFraction.fraction))
 	except AttributeError:
 		strangeVariable = 0
 
 	try:
 		test = odb.materials[material].specificHeat.dependencies
-		print"Specific Heat:"
-		print "    Dependencies: " + str(odb.materials[material].specificHeat.dependencies)
-		print "    Law: " + str(odb.materials[material].specificHeat.law)
-		print "    Table: " + str(odb.materials[material].specificHeat.table)
-		print "    Temperature Dependency: " + str(odb.materials[material].specificHeat.temperatureDependency)
+		list.append("Specific Heat:")
+		list.append("    Dependencies: " + str(odb.materials[material].specificHeat.dependencies))
+		list.append("    Law: " + str(odb.materials[material].specificHeat.law))
+		list.append("    Table: " + str(odb.materials[material].specificHeat.table))
+		pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\" + "\\specificHeat"
+		createDirectory(pathTmp)
+		printTableToTXT(str(odb.materials[material].specificHeat.table),pathTmp + "\\" + odb.materials[material].name)
+		printTableToCSV(str(odb.materials[material].specificHeat.table),pathTmp + "\\" + odb.materials[material].name)
+		list.append("    Temperature Dependency: " + str(odb.materials[material].specificHeat.temperatureDependency))
 	except AttributeError:
 		strangeVariable = 0
 ##########################################################################################################################
