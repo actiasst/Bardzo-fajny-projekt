@@ -1,3 +1,5 @@
+import time
+time1 = time.time()
 list = odb.steps.keys()
 
 for tmp in list:
@@ -46,3 +48,5 @@ for tmp in list:
 		print " "
 	except AttributeError:
 		strangeVariable = 0
+time2 = time.time()
+print "Duration: " + str(time2 - time1)
