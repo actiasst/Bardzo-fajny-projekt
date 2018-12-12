@@ -7,10 +7,30 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.pagesizes import portrait
 from reportlab.platypus import Image
-
+from abaqus import session
+import section
+import regionToolset
+import displayGroupMdbToolset as dgm
+import part
+import material
+import assembly
+import step
+import interaction
+import load
+import mesh
+import optimization
+import job
+import sketch
+import visualization
+import xyPlot
+import displayGroupOdbToolset as dgo
+import connectorBehavior
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName,
-	showFramesCheck,showAllCheck,fromFrame,toFrame):
+	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck):
+	print " "
+	print " "
+	print " "
 	odb = openOdb(fileName)
 	global odb
 	print "Exporting..."
@@ -19,10 +39,14 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
+	plotsNames = []
 	
 	stringList.append(getName(odb.name))
 	stringList.append("Date: " + currentDate.strftime("%Y-%m-%d %H:%M"))
 	stringList.append(" ")
+	counter = 0.
+	if generalCheck == 1 or mechanicalCheck == 1 or thermalCheck == 1:
+		print "Materials progress:"
 	for tmp in listMaterials:
 		if generalCheck == 1 or mechanicalCheck == 1 or thermalCheck == 1:
 			basicInfoFun(tmp,stringList)
@@ -33,6 +57,9 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 			if thermalCheck == 1:
 				thermalInfoFun(tmp,stringList)
 			stringList.append(" ")
+			counter += 1.
+			progress = counter / float(len(listMaterials))
+			print str(progress*100) + "%"
 	if partsCheck == 1:
 		partsInfoFun(stringList)
 	if instancesCheck == 1:
@@ -48,9 +75,11 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 			stepsInfoFun(stringList)
 		else:
 			stepsInfoFun2(stringList,fromFrame,toFrame)
+	if showPlotsCheck == 1:
+		plotsNames = plotFun(stringList)
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
-	generatePDF(stringList,pdfName)
+	generatePDF(stringList,pdfName,plotsNames)
 ########################################################################################################################## DONE
 def basicInfoFun(material,list):
 	global odb
@@ -418,6 +447,8 @@ def thermalInfoFun(material,list):
 def elementSetsInfoFun(list2):
 	global odb
 	list = odb.rootAssembly.elementSets.keys()
+	counter = 0.
+	print "Sets progress:"
 	for tmp in list:
 		try:
 			test = odb.rootAssembly.elementSets[tmp].name
@@ -429,10 +460,15 @@ def elementSetsInfoFun(list2):
 			list2.append(" ")
 		except AttributeError:
 			strangeVariable = 0
+		counter += 1.
+		progress = counter / float(len(list))
+		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def partsInfoFun(list2):
 	global odb
 	list = odb.parts.keys()
+	counter = 0.
+	print "Parts progress:"
 	for tmp in list:
 		try:
 			test = odb.parts[tmp].name
@@ -444,10 +480,15 @@ def partsInfoFun(list2):
 			list2.append(" ")
 		except AttributeError:
 			strangeVariable = 0
+		counter += 1.
+		progress = counter / float(len(list))
+		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def instancesInfoFun(listTmp):
 	global odb
 	list = odb.rootAssembly.instances.keys()
+	counter = 0.
+	print "Instances progress:"
 	for tmp in list:
 		try:
 			test = odb.rootAssembly.instances[tmp].name
@@ -492,10 +533,15 @@ def instancesInfoFun(listTmp):
 			listTmp.append(" ")
 		except AttributeError:
 			strangeVariable = 0
+		counter += 1.
+		progress = counter / float(len(list))
+		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def sectionCategoriesInfoFun(list2):
 	global odb
 	list = odb.sectionCategories.keys()
+	counter = 0.
+	print "Section Caregories progress:"
 	for tmp in list:
 		try:
 			test = odb.sectionCategories[tmp].name
@@ -505,10 +551,15 @@ def sectionCategoriesInfoFun(list2):
 			list2.append(" ")
 		except AttributeError:
 			strangeVariable = 0
+		counter += 1.
+		progress = counter / float(len(list))
+		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def sectionsInfoFun(list2):
 	global odb
 	list = odb.sections.keys()
+	counter = 0.
+	print "Sections progress:"
 	for tmp in list:
 		try:
 			test2 = odb.sections[tmp].name
@@ -519,12 +570,16 @@ def sectionsInfoFun(list2):
 			list2.append(" ")
 		except AttributeError:
 			strangeVariable = 0
-########################################################################################################################## PROPABLY DONE
-def generatePDF(list,name):
+		counter += 1.
+		progress = counter / float(len(list))
+		print str(progress*100) + "%"
+##########################################################################################################################
+def generatePDF(list,name,plotsNames =[]):
 	pageNumber = 1
 	beggining = 50
 	fontSize = 14
 	newLine = fontSize + 4
+	plotCounter = 0
 	c = canvas.Canvas(name,pagesize=portrait(A4),bottomup=0)
 	c.setFont('Helvetica',fontSize, leading=None)
 	for tmp in range(len(list)):
@@ -538,6 +593,26 @@ def generatePDF(list,name):
 		beggining += newLine
 	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 	c.showPage()
+	for tmp in range(0,len(plotsNames),2):
+		pageNumber += 1
+		c.saveState()
+		c.translate(0,300)
+		c.scale(1,-1)
+		c.drawImage(destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[tmp] + ".jpg",0,0,A4[0],300)
+		plotCounter += 1
+		c.restoreState()
+		if plotCounter == len(plotsNames):
+			c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+			c.showPage()
+			break
+		c.saveState()
+		c.translate(0,600)
+		c.scale(1,-1)
+		c.drawImage(destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[tmp+1] + ".jpg",0,0,A4[0],300)
+		plotCounter += 1
+		c.restoreState()
+		c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+		c.showPage()
 	c.save()
 	print "Exported to " + name
 ########################################################################################################################## DONE
@@ -673,7 +748,6 @@ def stepsInfoFun(stringList):
 				strangeVariable = 0
 			stringList.append(" ")
 			counter = 0.
-			print "Ending step."
 		except AttributeError:
 			strangeVariable = 0
 ########################################################################################################################## DONE
@@ -732,7 +806,193 @@ def stepsInfoFun2(stringList,fromFrame,toFrame):
 				strangeVariable = 0
 			stringList.append(" ")
 			counter = 0.
-			print "Ending step."
 		except AttributeError:
 			strangeVariable = 0
+########################################################################################################################## DONE
+def viewPlot(plot,odbName):
+	from abaqus import session
+	import section
+	import regionToolset
+	import displayGroupMdbToolset as dgm
+	import part
+	import material
+	import assembly
+	import step
+	import interaction
+	import load
+	import mesh
+	import optimization
+	import job
+	import sketch
+	import visualization
+	import xyPlot
+	import displayGroupOdbToolset as dgo
+	import connectorBehavior
+	odb = session.odbs[odbName]
+	xy1 = xyPlot.XYDataFromHistory(odb=odb, 
+		outputVariableName=plot, 
+		suppressQuery=True, __linkedVpName__='Viewport: 1')
+	c1 = session.Curve(xyData=xy1)
+	xyp = session.xyPlots['XYPlot-1']
+	chartName = xyp.charts.keys()[0]
+	chart = xyp.charts[chartName]
+	chart.setValues(curvesToPlot=(c1, ), )
+	session.viewports['Viewport: 1'].setValues(displayedObject=xyp)
+########################################################################################################################## DONE
+def viewPlot2(plot,odbName):
+	from abaqus import session
+	import section
+	import regionToolset
+	import displayGroupMdbToolset as dgm
+	import part
+	import material
+	import assembly
+	import step
+	import interaction
+	import load
+	import mesh
+	import optimization
+	import job
+	import sketch
+	import visualization
+	import xyPlot
+	import displayGroupOdbToolset as dgo
+	import connectorBehavior
+	o7 = session.odbs[odbName]
+	session.viewports['Viewport: 1'].setValues(displayedObject=o7)
+	odb = session.odbs[odbName]
+	xy1 = xyPlot.XYDataFromHistory(odb=odb, 
+		outputVariableName=plot, 
+		suppressQuery=True, __linkedVpName__='Viewport: 1')
+	c1 = session.Curve(xyData=xy1)
+	xyp = session.XYPlot('XYPlot-1')
+	chartName = xyp.charts.keys()[0]
+	chart = xyp.charts[chartName]
+	chart.setValues(curvesToPlot=(c1, ), )
+	session.viewports['Viewport: 1'].setValues(displayedObject=xyp)
+	session.mdbData.summary()
+########################################################################################################################## DONE
+def makeScreenshot(path):
+	from abaqus import session
+	import section
+	import regionToolset
+	import displayGroupMdbToolset as dgm
+	import part
+	import material
+	import assembly
+	import step
+	import interaction
+	import load
+	import mesh
+	import optimization
+	import job
+	import sketch
+	import visualization
+	import xyPlot
+	import displayGroupOdbToolset as dgo
+	import connectorBehavior
+	from abaqusConstants import PNG
+	session.printToFile(fileName=path, format=PNG, canvasObjects=(session.viewports['Viewport: 1'], ))
+##########################################################################################################################
+def plotFun(stringList):
+	from abaqus import session
+	import section
+	import regionToolset
+	import displayGroupMdbToolset as dgm
+	import part
+	import material
+	import assembly
+	import step
+	import interaction
+	import load
+	import mesh
+	import optimization
+	import job
+	import sketch
+	import visualization
+	import xyPlot
+	import displayGroupOdbToolset as dgo
+	import connectorBehavior
+	list = odb.steps.keys()
+	odbNameTmp = odb.name
+
+	plotsList = []
+	plotsNames = []
+	for tmp in list:
+		try:
+			test = odb.steps[tmp].name
+			stringList.append("STEP: ")
+			stringList.append(odb.steps[tmp].name)
+			list2 = odb.steps[tmp].historyRegions.keys()
+			for tmp2 in list2:
+				try:
+					test = odb.steps[tmp].historyRegions[tmp2].name
+					stringList.append("HISTORY REGIONS:")
+					stringList.append(odb.steps[tmp].historyRegions[tmp2].name)
+					list3 = odb.steps[tmp].historyRegions[tmp2].historyOutputs.keys()
+					for tmp3 in list3:
+						try:
+							test = odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name
+							tmpString = str(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].description)
+							tmpString += ": "
+							tmpString += str(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
+							tmpString += " for Whole Model" ###EWENTUALNIE DO ZMIANY JAK SIE OKAZE ZE JEST WIECEJ
+							plotsList.append(tmpString)
+							plotsNames.append(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
+							stringList.append("    " + tmpString)
+						except AttributeError:
+							strangeVariable = 0
+				except AttributeError:
+					strangeVariable = 0
+			stringList.append(" ")
+		except AttributeError:
+			strangeVariable = 0
+	createDirectory(destinationFileName2 + "\\" + getName(odb.name) + "\\plots")
+
+	if len(session.xyPlots) > 0:
+		counter = 0.
+		print "Plots progress:"
+		for tmp in range(0,len(plotsList)):
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[tmp]
+			viewPlot(plotsList[tmp],odbNameTmp)
+			makeScreenshot(pathTmp)
+			counter += 1.
+			progress = counter / float(len(plotsList))
+			print str(progress*100) + "%"
+	else:
+		counter = 0.
+		print "Plots progress:"
+		viewPlot2(plotsList[0],odbNameTmp)
+		makeScreenshot(str(0))
+		for tmp in range(1,len(plotsList)):
+			pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[tmp]
+			viewPlot(plotsList[tmp],odbNameTmp)
+			makeScreenshot(pathTmp)
+			counter += 1.
+			progress = counter / float(len(plotsList))
+			print str(progress*100) + "%"
+	path = destinationFileName2 + "\\" + getName(odb.name) + "\\plots" 
+	os.system("java convertPNGtoJPG " + path)
+	return plotsNames
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
