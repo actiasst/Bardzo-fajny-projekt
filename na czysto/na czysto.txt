@@ -889,10 +889,10 @@ def plotFun(stringList):
 				progress = counter / float(len(plotsList))
 				print str(progress*100) + "%"
 		else:
-			counter = 0.
+			counter = 1.
 			print "Plots progress:"
 			viewPlot2(plotsList[0],odbNameTmp)
-			makeScreenshot(str(0))
+			makeScreenshot(destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[0])
 			for tmp in range(1,len(plotsList)):
 				pathTmp = destinationFileName2 + "\\" + getName(odb.name) + "\\plots\\" + plotsNames[tmp]
 				viewPlot(plotsList[tmp],odbNameTmp)
