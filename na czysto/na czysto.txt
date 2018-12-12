@@ -25,9 +25,11 @@ import visualization
 import xyPlot
 import displayGroupOdbToolset as dgo
 import connectorBehavior
+import time
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName,
 	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck):
+	time1 = time.time()
 	print " "
 	print " "
 	print " "
@@ -80,6 +82,8 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
 	generatePDF(stringList,pdfName,plotsNames)
+	time2 = time.time()
+	print "Execution time: " + str(time2 - time1) + "s"
 ########################################################################################################################## DONE
 def basicInfoFun(material,list):
 	global odb
@@ -915,12 +919,16 @@ def plotFun(stringList):
 	import connectorBehavior
 	list = odb.steps.keys()
 	odbNameTmp = odb.name
-
+	
+	path = path = destinationFileName2 + "\\" + getName(odb.name) + "\\plotsData\\"
+	createDirectory(destinationFileName2 + "\\" + getName(odb.name) + "\\plots")
+	createDirectory(destinationFileName2 + "\\" + getName(odb.name) + "\\plotsData\\")
 	plotsList = []
 	plotsNames = []
 	for tmp in list:
 		try:
 			test = odb.steps[tmp].name
+			stringList.append("PLOTS:")
 			stringList.append("STEP: ")
 			stringList.append(odb.steps[tmp].name)
 			list2 = odb.steps[tmp].historyRegions.keys()
@@ -940,6 +948,8 @@ def plotFun(stringList):
 							plotsList.append(tmpString)
 							plotsNames.append(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
 							stringList.append("    " + tmpString)
+							printTableToTXT(str(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].data),path+odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
+							printTableToCSV(str(odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].data),path+odb.steps[tmp].historyRegions[tmp2].historyOutputs[tmp3].name)
 						except AttributeError:
 							strangeVariable = 0
 				except AttributeError:
@@ -947,7 +957,6 @@ def plotFun(stringList):
 			stringList.append(" ")
 		except AttributeError:
 			strangeVariable = 0
-	createDirectory(destinationFileName2 + "\\" + getName(odb.name) + "\\plots")
 
 	if len(session.xyPlots) > 0:
 		counter = 0.
