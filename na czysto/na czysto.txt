@@ -26,6 +26,7 @@ import xyPlot
 import displayGroupOdbToolset as dgo
 import connectorBehavior
 import time
+from abaqusConstants import PNG
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName,
 	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck):
@@ -86,7 +87,6 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	print "Execution time: " + str(time2 - time1) + "s"
 ########################################################################################################################## DONE
 def basicInfoFun(material,list):
-	global odb
 	try:
 		test = odb.materials[material].name
 		list.append("MATERIAL:")
@@ -107,7 +107,6 @@ def basicInfoFun(material,list):
 		strangeVariable = 0
 ########################################################################################################################## DONE
 def generalInfoFun(material,list):
-	global odb
 	global destinationFileName2
 	try:
 		test = odb.materials[material].density.dependencies
@@ -149,7 +148,6 @@ def generalInfoFun(material,list):
 		strangeVariable = 0
 ########################################################################################################################## DONE
 def mechanicalInfoFun(material,list):
-	global odb
 	global destinationFileName2
 	try:
 		test = odb.materials[material].elastic.dependencies
@@ -411,7 +409,6 @@ def mechanicalInfoFun(material,list):
 
 ########################################################################################################################## DONE
 def thermalInfoFun(material,list):
-	global odb
 	global destinationFileName2
 	try:
 		test = odb.materials[material].conductivity.dependencies
@@ -449,7 +446,6 @@ def thermalInfoFun(material,list):
 		strangeVariable = 0
 ########################################################################################################################## DONE
 def elementSetsInfoFun(list2):
-	global odb
 	list = odb.rootAssembly.elementSets.keys()
 	counter = 0.
 	print "Sets progress:"
@@ -469,7 +465,6 @@ def elementSetsInfoFun(list2):
 		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def partsInfoFun(list2):
-	global odb
 	list = odb.parts.keys()
 	counter = 0.
 	print "Parts progress:"
@@ -489,7 +484,6 @@ def partsInfoFun(list2):
 		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def instancesInfoFun(listTmp):
-	global odb
 	list = odb.rootAssembly.instances.keys()
 	counter = 0.
 	print "Instances progress:"
@@ -542,7 +536,6 @@ def instancesInfoFun(listTmp):
 		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def sectionCategoriesInfoFun(list2):
-	global odb
 	list = odb.sectionCategories.keys()
 	counter = 0.
 	print "Section Caregories progress:"
@@ -560,7 +553,6 @@ def sectionCategoriesInfoFun(list2):
 		print str(progress*100) + "%"
 ########################################################################################################################## DONE
 def sectionsInfoFun(list2):
-	global odb
 	list = odb.sections.keys()
 	counter = 0.
 	print "Sections progress:"
@@ -814,24 +806,6 @@ def stepsInfoFun2(stringList,fromFrame,toFrame):
 			strangeVariable = 0
 ########################################################################################################################## DONE
 def viewPlot(plot,odbName):
-	from abaqus import session
-	import section
-	import regionToolset
-	import displayGroupMdbToolset as dgm
-	import part
-	import material
-	import assembly
-	import step
-	import interaction
-	import load
-	import mesh
-	import optimization
-	import job
-	import sketch
-	import visualization
-	import xyPlot
-	import displayGroupOdbToolset as dgo
-	import connectorBehavior
 	odb = session.odbs[odbName]
 	xy1 = xyPlot.XYDataFromHistory(odb=odb, 
 		outputVariableName=plot, 
@@ -844,24 +818,6 @@ def viewPlot(plot,odbName):
 	session.viewports['Viewport: 1'].setValues(displayedObject=xyp)
 ########################################################################################################################## DONE
 def viewPlot2(plot,odbName):
-	from abaqus import session
-	import section
-	import regionToolset
-	import displayGroupMdbToolset as dgm
-	import part
-	import material
-	import assembly
-	import step
-	import interaction
-	import load
-	import mesh
-	import optimization
-	import job
-	import sketch
-	import visualization
-	import xyPlot
-	import displayGroupOdbToolset as dgo
-	import connectorBehavior
 	o7 = session.odbs[odbName]
 	session.viewports['Viewport: 1'].setValues(displayedObject=o7)
 	odb = session.odbs[odbName]
@@ -877,46 +833,9 @@ def viewPlot2(plot,odbName):
 	session.mdbData.summary()
 ########################################################################################################################## DONE
 def makeScreenshot(path):
-	from abaqus import session
-	import section
-	import regionToolset
-	import displayGroupMdbToolset as dgm
-	import part
-	import material
-	import assembly
-	import step
-	import interaction
-	import load
-	import mesh
-	import optimization
-	import job
-	import sketch
-	import visualization
-	import xyPlot
-	import displayGroupOdbToolset as dgo
-	import connectorBehavior
-	from abaqusConstants import PNG
 	session.printToFile(fileName=path, format=PNG, canvasObjects=(session.viewports['Viewport: 1'], ))
 ##########################################################################################################################
 def plotFun(stringList):
-	from abaqus import session
-	import section
-	import regionToolset
-	import displayGroupMdbToolset as dgm
-	import part
-	import material
-	import assembly
-	import step
-	import interaction
-	import load
-	import mesh
-	import optimization
-	import job
-	import sketch
-	import visualization
-	import xyPlot
-	import displayGroupOdbToolset as dgo
-	import connectorBehavior
 	list = odb.steps.keys()
 	odbNameTmp = odb.name
 	
