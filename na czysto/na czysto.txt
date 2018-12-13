@@ -28,12 +28,19 @@ import connectorBehavior
 import time
 from abaqusConstants import PNG
 
-def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,destinationFileName,
-	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck):
+def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,
+	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck,test,test2,frontTest,backTest,topTest,
+	bottomTest,leftTest,rightTest,isoTest,destinationFileName):
 	time1 = time.time()
 	print " "
 	print " "
 	print " "
+
+
+	tab = parseToFrames(test)
+	print tab
+
+	return 0
 	odb = openOdb(fileName)
 	global odb
 	print "Exporting..."
@@ -834,7 +841,7 @@ def viewPlot2(plot,odbName):
 ########################################################################################################################## DONE
 def makeScreenshot(path):
 	session.printToFile(fileName=path, format=PNG, canvasObjects=(session.viewports['Viewport: 1'], ))
-##########################################################################################################################
+########################################################################################################################## DONE
 def plotFun(stringList):
 	list = odb.steps.keys()
 	odbNameTmp = odb.name
@@ -903,7 +910,47 @@ def plotFun(stringList):
 		path = destinationFileName2 + "\\" + getName(odb.name) + "\\plots" 
 		os.system("java convertPNGtoJPG " + path)
 	return plotsNames
+########################################################################################################################## DONE
+def parseToFrames(string):
+	frameList = []
+	tmp = ""
+	counter = 0
 
+	for i in string:
+		if i == ",":
+			lastSign = ","
+		if i == "-":
+			lastSign = "-"
+
+	if lastSign == "-":
+		string += ","
+
+	for i in range(len(string)):
+		if string[counter] == ",":
+			frameList.append(int(tmp))
+			tmp = ""
+		elif string[counter] == "-":
+			tmpInt1 = int(tmp)
+			tmp = ""
+			for j in range(counter+1,len(string)):
+				if string[j] == ",":
+					tmpInt2 = int(tmp)
+					tmp = ""
+					counter += 1
+					break
+				else:
+					tmp += string[j]
+				counter += 1
+			for j in range(tmpInt1,tmpInt2+1):
+				frameList.append(j)
+		else:
+			tmp += string[counter]
+		counter += 1
+		if counter == len(string):
+			break
+	if tmp != "":
+		frameList.append(int(tmp))
+	return frameList
 
 
 
