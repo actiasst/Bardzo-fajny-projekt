@@ -48,10 +48,10 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	global destinationFileName2
 
 	frameList = parseToFrames(test)
-	print frameList
 	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
-
-	#return 0
+	fieldOutputList = parseToFieldOutput(test2)
+	makeScreenShotsOfFieldOutputs(viewList,frameList,fieldOutputList)
+	return 0
 
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
@@ -1108,8 +1108,12 @@ def translate(string):
 	elif string == INV3:
 		return "Third Invariant"
 ##########################################################################################################################
-def makeScreenShotsOfFieldOutputs(viewList = [],frameList = []):
+def makeScreenShotsOfFieldOutputs(viewList = [],frameList = [], fieldOutputList = []):
 	listPart = odb.rootAssembly.instances.keys()
+	print frameList
+	print fieldOutputList
+	print viewList
+
 	startAllOutputs()
 	turnOffMesh()
 	path = destinationFileName2 + "\\" + getName(odb.name) + "\\fieldOutputs\\"
@@ -1122,8 +1126,8 @@ def makeScreenShotsOfFieldOutputs(viewList = [],frameList = []):
 			path = destinationFileName2 + "\\" + getName(odb.name) + "\\fieldOutputs\\" + stepData.name+ "\\" + str(frameList[tmp2])
 			createDirectory(path)
 			list2 = frameData.fieldOutputs.keys()
-			for tmp3 in list2:
-				fieldTmp = frameData.fieldOutputs[tmp3]
+			for tmp3 in range(len(fieldOutputList)):
+				fieldTmp = frameData.fieldOutputs[fieldOutputList[tmp3]]
 				name = fieldTmp.name
 				for invariant in range(len(fieldTmp.validInvariants)):
 					changeType(name,fieldTmp.locations[0].position,"INVARIANT",translate(fieldTmp.validInvariants[invariant]))
@@ -1153,8 +1157,8 @@ def makeScreenShotsOfFieldOutputs(viewList = [],frameList = []):
 						os.system("java convertPNGtoJPG " +"\""+ path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes])+"\\"+viewList[view]+"\"")
 				if len(fieldTmp.componentLabels) == 0 and len(fieldTmp.componentLabels) == 0:
 					changeType(name,fieldTmp.locations[0].position)
-					createDirectory(path+"\\"+name+"\\"+"\\"+viewList[view])
 					for view in range(len(viewList)):
+						createDirectory(path+"\\"+name+"\\"+"\\"+viewList[view])
 						changeView(viewList[view])
 						for tmp4 in listPart:
 							changePart(tmp4)
