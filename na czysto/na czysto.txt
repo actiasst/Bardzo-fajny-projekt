@@ -27,29 +27,31 @@ import displayGroupOdbToolset as dgo
 import connectorBehavior
 import time
 from abaqusConstants import PNG
+from abaqusConstants import UNDEFORMED
+from abaqusConstants import FEATURE
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,
 	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck,test,test2,frontTest,backTest,topTest,
-	bottomTest,leftTest,rightTest,isoTest,destinationFileName):
+	bottomTest,leftTest,rightTest,isoTest,destinationFileName,partsScreenshotCheck):
 	time1 = time.time()
 	print " "
 	print " "
 	print " "
-
-
-	tab = parseToFrames(test)
-	print tab
-
-	return 0
 	odb = openOdb(fileName)
 	global odb
 	print "Exporting..."
 	destinationFileName2 = destinationFileName
 	global destinationFileName2
+
+
+	
+	
+
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
 	plotsNames = []
+	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
 	
 	stringList.append(getName(odb.name))
 	stringList.append("Date: " + currentDate.strftime("%Y-%m-%d %H:%M"))
@@ -87,9 +89,11 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 			stepsInfoFun2(stringList,fromFrame,toFrame)
 	if showPlotsCheck == 1:
 		plotsNames = plotFun(stringList)
+	if partsScreenshotCheck == 1:
+		makeScreenShotsOfParts()
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
-	generatePDF(stringList,pdfName,plotsNames)
+	generatePDF(stringList,pdfName,partsScreenshotCheck,viewList,plotsNames)
 	time2 = time.time()
 	print "Execution time: " + str(time2 - time1) + "s"
 ########################################################################################################################## DONE
@@ -577,7 +581,7 @@ def sectionsInfoFun(list2):
 		progress = counter / float(len(list))
 		print str(progress*100) + "%"
 ##########################################################################################################################
-def generatePDF(list,name,plotsNames =[]):
+def generatePDF(list,name,partsScreenshotCheck,viewList,plotsNames = []):
 	pageNumber = 1
 	beggining = 50
 	fontSize = 14
@@ -597,6 +601,7 @@ def generatePDF(list,name,plotsNames =[]):
 	c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 	c.showPage()
 	for tmp in range(0,len(plotsNames),2):
+		c.setFont('Helvetica',fontSize, leading=None)
 		pageNumber += 1
 		c.saveState()
 		c.translate(0,300)
@@ -616,6 +621,36 @@ def generatePDF(list,name,plotsNames =[]):
 		c.restoreState()
 		c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 		c.showPage()
+	if partsScreenshotCheck == 1:
+		partList = odb.rootAssembly.instances.keys()
+		partList.insert(0,"All")
+		for tmp in range(0,len(partList)):
+			viewCounter = 0
+			c.setFont('Helvetica',fontSize, leading=None)
+			for tmp2 in range(0,len(viewList),2):
+				c.setFont('Helvetica',fontSize, leading=None)
+				pageNumber += 1
+				c.saveState()
+				c.translate(0,300)
+				c.scale(1,-1)
+				c.drawImage(destinationFileName2 + "\\" + getName(odb.name) + "\\part\\" + viewList[tmp2] + "\\" + partList[tmp] + ".jpg",0,0,A4[0],300)
+				c.restoreState()
+				c.drawString(270,20,partList[tmp])
+				viewCounter += 1
+				if viewCounter == len(viewList):
+					c.setFont('Helvetica',fontSize, leading=None)
+					c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+					c.showPage()
+					break
+				c.saveState()
+				c.translate(0,600)
+				c.scale(1,-1)
+				c.drawImage(destinationFileName2 + "\\" + getName(odb.name) + "\\part\\" + viewList[tmp2+1] + "\\" + partList[tmp] + ".jpg",0,0,A4[0],300)
+				c.restoreState()
+				c.drawString(270,320,partList[tmp])
+				viewCounter += 1
+				c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+				c.showPage()
 	c.save()
 	print "Exported to " + name
 ########################################################################################################################## DONE
@@ -951,17 +986,81 @@ def parseToFrames(string):
 	if tmp != "":
 		frameList.append(int(tmp))
 	return frameList
-
-
-
-
-
-
-
-
-
-
-
+########################################################################################################################## DONE
+def parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest):
+	viewList = []
+	if isoTest == 1:
+		viewList.append("Iso")
+	if frontTest == 1:
+		viewList.append("Front")
+	if backTest == 1:
+		viewList.append("Back")
+	if topTest == 1:
+		viewList.append("Top")
+	if bottomTest == 1:
+		viewList.append("Bottom")
+	if leftTest == 1:
+		viewList.append("Left")
+	if rightTest == 1:
+		viewList.append("Right")
+	return viewList
+########################################################################################################################## DONE
+def parseToFieldOutput(string):
+	fieldOutputList = []
+	string += ","
+	tmp = ""
+	for i in string:
+		if i == ",":
+			fieldOutputList.append(tmp)
+			tmp = ""
+		else:
+			tmp += i
+	return fieldOutputList
+########################################################################################################################## DONE
+def startPart():
+	o7 = session.odbs[odb.name]
+	session.viewports['Viewport: 1'].setValues(displayedObject=o7)
+	session.mdbData.summary()
+	session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(UNDEFORMED, ))
+########################################################################################################################## DONE
+def turnOffMesh():
+	session.viewports['Viewport: 1'].odbDisplay.commonOptions.setValues(
+        visibleEdges=FEATURE)
+########################################################################################################################## DONE
+def changePart(part):
+	leaf = dgo.LeafFromPartInstance(partInstanceName=(part, ))
+	session.viewports['Viewport: 1'].odbDisplay.displayGroup.replace(leaf=leaf)
+########################################################################################################################## DONE
+def addPart(part):
+	leaf = dgo.LeafFromPartInstance(partInstanceName=(part, ))
+	session.viewports['Viewport: 1'].odbDisplay.displayGroup.add(leaf=leaf)
+########################################################################################################################## DONE
+def changeView(view):
+	session.viewports['Viewport: 1'].view.setValues(session.views[view])
+########################################################################################################################## DONE
+def makeScreenShotsOfParts():
+	path = destinationFileName2 + "\\" + getName(odb.name) + "\\part\\"
+	viewList = ["Front","Back","Top","Bottom","Left","Right","Iso"]
+	list = odb.rootAssembly.instances.keys()
+	startPart()
+	turnOffMesh()
+	createDirectory(path+"Front")
+	createDirectory(path+"Back")
+	createDirectory(path+"Top")
+	createDirectory(path+"Bottom")
+	createDirectory(path+"Left")
+	createDirectory(path+"Right")
+	createDirectory(path+"Iso")
+	for view in range(len(viewList)):
+		changeView(viewList[view])
+		for tmp in list:
+			changePart(tmp)
+			makeScreenshot(path+viewList[view]+"\\"+tmp)
+		for tmp in list:
+			addPart(tmp)
+		makeScreenshot(path+viewList[view]+"\\"+"All")
+	for tmp in range(len(viewList)):
+		os.system("java convertPNGtoJPG " + path+viewList[tmp])
 
 
 
