@@ -29,6 +29,10 @@ import time
 from abaqusConstants import PNG
 from abaqusConstants import UNDEFORMED
 from abaqusConstants import FEATURE
+from abaqusConstants import DEFORMED
+from abaqusConstants import CONTOURS_ON_DEF
+from abaqusConstants import COMPONENT
+from abaqusConstants import INVARIANT
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,
 	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck,test,test2,frontTest,backTest,topTest,
@@ -43,10 +47,13 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	destinationFileName2 = destinationFileName
 	global destinationFileName2
 
+	frameList = parseToFrames(test)
+	print frameList
+	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
+	makeScreenShotsOfParts(viewList,frameList)
 
 	
-	
-
+	return 0
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
@@ -90,7 +97,7 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	if showPlotsCheck == 1:
 		plotsNames = plotFun(stringList)
 	if partsScreenshotCheck == 1:
-		makeScreenShotsOfParts()
+		makeScreenShotsOfParts(viewList)
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
 	generatePDF(stringList,pdfName,partsScreenshotCheck,viewList,plotsNames)
@@ -950,7 +957,7 @@ def parseToFrames(string):
 	frameList = []
 	tmp = ""
 	counter = 0
-
+	lastSign = "-"
 	for i in string:
 		if i == ",":
 			lastSign = ","
@@ -1038,9 +1045,8 @@ def addPart(part):
 def changeView(view):
 	session.viewports['Viewport: 1'].view.setValues(session.views[view])
 ########################################################################################################################## DONE
-def makeScreenShotsOfParts():
+def makeScreenShotsOfParts(viewList = []):
 	path = destinationFileName2 + "\\" + getName(odb.name) + "\\part\\"
-	viewList = ["Front","Back","Top","Bottom","Left","Right","Iso"]
 	list = odb.rootAssembly.instances.keys()
 	startPart()
 	turnOffMesh()
@@ -1061,6 +1067,117 @@ def makeScreenShotsOfParts():
 		makeScreenshot(path+viewList[view]+"\\"+"All")
 	for tmp in range(len(viewList)):
 		os.system("java convertPNGtoJPG " + path+viewList[tmp])
+########################################################################################################################## DONE
+def changeFrame(step,frame):
+	session.viewports[session.currentViewportName].odbDisplay.setFrame(step=step, frame=frame)
+########################################################################################################################## DONE
+def startAllOutputs():
+	o7 = session.odbs[odb.name]
+	session.viewports['Viewport: 1'].setValues(displayedObject=o7)
+	session.mdbData.summary()
+	session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(DEFORMED, ))
+	session.viewports['Viewport: 1'].odbDisplay.display.setValues(plotState=(CONTOURS_ON_DEF, ))
+########################################################################################################################## DONE
+def changeType(name,outputPosition,type = "none",type2 = "none"):
+	if type != "none":
+		if type == "INVARIANT":
+			session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(variableLabel=name, outputPosition=outputPosition,
+			refinement=(INVARIANT, type2), )
+		if type == "COMPONENT":
+			session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(variableLabel=name, outputPosition=outputPosition,
+			refinement=(COMPONENT, type2), )
+	else:
+		session.viewports['Viewport: 1'].odbDisplay.setPrimaryVariable(
+        	variableLabel=name, outputPosition=outputPosition, )
+##########################################################################################################################
+def translate(string):
+	if string == MAGNITUDE:
+		return "Magnitude"
+	elif string == MISES:
+		return "Mises"
+	elif string == MAX_PRINCIPAL:
+		return "Max. Principal"
+	elif string == MID_PRINCIPAL:
+		return "Mid. Principal"
+	elif string == MIN_PRINCIPAL:
+		return "Min. Principal"
+	elif string == TRESCA:
+		return "Tresca"
+	elif string == PRESS:
+		return "Pressure"
+	elif string == INV3:
+		return "Third Invariant"
+##########################################################################################################################
+def makeScreenShotsOfParts(viewList = [],frameList = []):
+	listPart = odb.rootAssembly.instances.keys()
+	startAllOutputs()
+	turnOffMesh()
+	path = destinationFileName2 + "\\" + getName(odb.name) + "\\fieldOutputs\\"
+	list = odb.steps.keys()
+	for tmp in list:
+		stepData = odb.steps[tmp]
+		for tmp2 in range(len(frameList)):
+			changeFrame(stepData.name,frameList[tmp2])
+			frameData = stepData.frames[frameList[tmp2]]
+			path = destinationFileName2 + "\\" + getName(odb.name) + "\\fieldOutputs\\" + stepData.name+ "\\" + str(frameList[tmp2])
+			createDirectory(path)
+			list2 = frameData.fieldOutputs.keys()
+			for tmp3 in list2:
+				fieldTmp = frameData.fieldOutputs[tmp3]
+				name = fieldTmp.name
+				for invariant in range(len(fieldTmp.validInvariants)):
+					changeType(name,fieldTmp.locations[0].position,"INVARIANT",translate(fieldTmp.validInvariants[invariant]))
+					createDirectory(path+"\\"+name+"\\"+str(fieldTmp.validInvariants[invariant]))
+					for view in range(len(viewList)):
+						createDirectory(path+"\\"+name+"\\"+str(fieldTmp.validInvariants[invariant])+"\\"+viewList[view])
+						changeView(viewList[view])
+						for tmp4 in listPart:
+							changePart(tmp4)
+							makeScreenshot(path+"\\"+name+"\\"+str(fieldTmp.validInvariants[invariant])+"\\"+viewList[view]+"\\"+tmp4)
+						for tmp4 in listPart:
+							addPart(tmp4)
+						makeScreenshot(path+"\\"+name+"\\"+str(fieldTmp.validInvariants[invariant])+"\\"+viewList[view]+"\\"+"All")
+						os.system("java convertPNGtoJPG " +"\""+ path+"\\"+name+"\\"+str(fieldTmp.validInvariants[invariant])+"\\"+viewList[view]+"\"")
+				for componentLabes in range(len(fieldTmp.componentLabels)):
+					changeType(name,fieldTmp.locations[0].position,"COMPONENT",fieldTmp.componentLabels[componentLabes])
+					createDirectory(path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes]))
+					for view in range(len(viewList)):
+						createDirectory(path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes])+"\\"+viewList[view])
+						changeView(viewList[view])
+						for tmp4 in listPart:
+							changePart(tmp4)
+							makeScreenshot(path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes])+"\\"+viewList[view]+"\\"+tmp4)
+						for tmp4 in listPart:
+							addPart(tmp4)
+						makeScreenshot(path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes])+"\\"+viewList[view]+"\\"+"All")
+						os.system("java convertPNGtoJPG " +"\""+ path+"\\"+name+"\\"+str(fieldTmp.componentLabels[componentLabes])+"\\"+viewList[view]+"\"")
+				if len(fieldTmp.componentLabels) == 0 and len(fieldTmp.componentLabels) == 0:
+					changeType(name,fieldTmp.locations[0].position)
+					createDirectory(path+"\\"+name+"\\"+"\\"+viewList[view])
+					for view in range(len(viewList)):
+						changeView(viewList[view])
+						for tmp4 in listPart:
+							changePart(tmp4)
+							makeScreenshot(path+"\\"+name+"\\"+"\\"+viewList[view]+"\\"+tmp4)
+						for tmp4 in listPart:
+							addPart(tmp4)
+						makeScreenshot(path+"\\"+name+"\\"+"\\"+viewList[view]+"\\"+"All")
+						os.system("java convertPNGtoJPG " +"\""+ path+"\\"+name+"\\"+"\\"+viewList[view]+"\"")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
