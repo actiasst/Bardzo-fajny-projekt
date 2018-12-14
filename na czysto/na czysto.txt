@@ -36,7 +36,7 @@ from abaqusConstants import INVARIANT
 
 def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSetsCheck,partsCheck,instancesCheck,sectionCategoriesCheck,sectionsCheck,
 	showFramesCheck,showAllCheck,fromFrame,toFrame,showPlotsCheck,test,test2,frontTest,backTest,topTest,
-	bottomTest,leftTest,rightTest,isoTest,destinationFileName,partsScreenshotCheck):
+	bottomTest,leftTest,rightTest,isoTest,destinationFileName,partsScreenshotCheck,test3):
 	time1 = time.time()
 	print " "
 	print " "
@@ -47,17 +47,17 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	destinationFileName2 = destinationFileName
 	global destinationFileName2
 
+	stepList = parseToStep(test3)
 	frameList = parseToFrames(test)
 	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
 	fieldOutputList = parseToFieldOutput(test2)
-	makeScreenShotsOfFieldOutputs(viewList,frameList,fieldOutputList)
-	return 0
+	
+	#return 0
 
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
 	plotsNames = []
-	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
 	stringList.append(getName(odb.name))
 	stringList.append("Date: " + currentDate.strftime("%Y-%m-%d %H:%M"))
 	stringList.append(" ")
@@ -96,9 +96,11 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 		plotsNames = plotFun(stringList)
 	if partsScreenshotCheck == 1:
 		makeScreenShotsOfParts(viewList)
+	if len(frameList) != 0:
+		makeScreenShotsOfFieldOutputs(viewList,frameList,fieldOutputList,stepList)
 	pdfName = destinationFileName + "\\" + getName(odb.name) + "\\" + getName(odb.name) + ".pdf"
 	createDirectory(destinationFileName + "\\" + getName(odb.name))
-	generatePDF(stringList,pdfName,partsScreenshotCheck,viewList,plotsNames)
+	generatePDF(stringList,pdfName,partsScreenshotCheck,viewList,frameList,fieldOutputList,plotsNames)
 	time2 = time.time()
 	print "Execution time: " + str(time2 - time1) + "s"
 ########################################################################################################################## DONE
@@ -586,7 +588,7 @@ def sectionsInfoFun(list2):
 		progress = counter / float(len(list))
 		print str(progress*100) + "%"
 ##########################################################################################################################
-def generatePDF(list,name,partsScreenshotCheck,viewList,plotsNames = []):
+def generatePDF(list,name,partsScreenshotCheck,viewList,frameList,fieldOutputList,plotsNames = []):
 	pageNumber = 1
 	beggining = 50
 	fontSize = 14
@@ -1024,6 +1026,18 @@ def parseToFieldOutput(string):
 			tmp += i
 	return fieldOutputList
 ########################################################################################################################## DONE
+def parseToStep(string):
+	stepList = []
+	string += ","
+	tmp = ""
+	for i in string:
+		if i == ",":
+			stepList.append(tmp)
+			tmp = ""
+		else:
+			tmp += i
+	return stepList
+########################################################################################################################## DONE
 def startPart():
 	o7 = session.odbs[odb.name]
 	session.viewports['Viewport: 1'].setValues(displayedObject=o7)
@@ -1108,8 +1122,9 @@ def translate(string):
 	elif string == INV3:
 		return "Third Invariant"
 ##########################################################################################################################
-def makeScreenShotsOfFieldOutputs(viewList = [],frameList = [], fieldOutputList = []):
+def makeScreenShotsOfFieldOutputs(viewList = [],frameList = [], fieldOutputList = [], stepList = []):
 	listPart = odb.rootAssembly.instances.keys()
+	print stepList
 	print frameList
 	print fieldOutputList
 	print viewList
@@ -1118,8 +1133,8 @@ def makeScreenShotsOfFieldOutputs(viewList = [],frameList = [], fieldOutputList 
 	turnOffMesh()
 	path = destinationFileName2 + "\\" + getName(odb.name) + "\\fieldOutputs\\"
 	list = odb.steps.keys()
-	for tmp in list:
-		stepData = odb.steps[tmp]
+	for tmp in range(len(stepList)):
+		stepData = odb.steps[stepList[tmp]]
 		for tmp2 in range(len(frameList)):
 			changeFrame(stepData.name,frameList[tmp2])
 			frameData = stepData.frames[frameList[tmp2]]
