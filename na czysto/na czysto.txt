@@ -50,16 +50,14 @@ def executeFunction(fileName,generalCheck,mechanicalCheck,thermalCheck,elementSe
 	frameList = parseToFrames(test)
 	print frameList
 	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
-	makeScreenShotsOfParts(viewList,frameList)
 
-	
-	return 0
+	#return 0
+
 	listMaterials = odb.materials.keys()
 	currentDate = datetime.datetime.now()
 	stringList = []
 	plotsNames = []
 	viewList = parseToView(frontTest,backTest,topTest,bottomTest,leftTest,rightTest,isoTest)
-	
 	stringList.append(getName(odb.name))
 	stringList.append("Date: " + currentDate.strftime("%Y-%m-%d %H:%M"))
 	stringList.append(" ")
@@ -950,11 +948,13 @@ def plotFun(stringList):
 				progress = counter / float(len(plotsList))
 				print str(progress*100) + "%"
 		path = destinationFileName2 + "\\" + getName(odb.name) + "\\plots" 
-		os.system("java convertPNGtoJPG " + path)
+		os.system("java convertPNGtoJPG " + "\"" + path + "\"")
 	return plotsNames
 ########################################################################################################################## DONE
 def parseToFrames(string):
 	frameList = []
+	if string == "":
+		return frameList
 	tmp = ""
 	counter = 0
 	lastSign = "-"
@@ -1066,7 +1066,7 @@ def makeScreenShotsOfParts(viewList = []):
 			addPart(tmp)
 		makeScreenshot(path+viewList[view]+"\\"+"All")
 	for tmp in range(len(viewList)):
-		os.system("java convertPNGtoJPG " + path+viewList[tmp])
+		os.system("java convertPNGtoJPG " +"\"" + path+viewList[tmp]+"\"")
 ########################################################################################################################## DONE
 def changeFrame(step,frame):
 	session.viewports[session.currentViewportName].odbDisplay.setFrame(step=step, frame=frame)
@@ -1108,7 +1108,7 @@ def translate(string):
 	elif string == INV3:
 		return "Third Invariant"
 ##########################################################################################################################
-def makeScreenShotsOfParts(viewList = [],frameList = []):
+def makeScreenShotsOfFieldOutputs(viewList = [],frameList = []):
 	listPart = odb.rootAssembly.instances.keys()
 	startAllOutputs()
 	turnOffMesh()
