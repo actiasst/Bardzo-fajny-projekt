@@ -720,6 +720,34 @@ def generatePDF(list,name,partsScreenshotCheck,viewList,frameList,fieldOutputLis
 								viewCounter += 1
 								c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
 								c.showPage()
+					validInvariantsList = frame.fieldOutputs[tmp3].validInvariants
+					for validInvariants in validInvariantsList:
+						viewCounter = 0
+						for view in viewList:
+							for part in range(0,len(partList),2):
+								c.setFont('Helvetica',fontSize, leading=None)
+								pageNumber += 1
+								c.saveState()
+								c.translate(0,320)
+								c.scale(1,-1)
+								c.drawImage(destinationFileName2+"\\"+getName(odb.name)+"\\fieldOutputs\\"+tmp+"\\"+str(tmp2)+"\\"+tmp3+"\\"+str(validInvariants)+"\\"+view+"\\"+partList[part]+".jpg",0,0,A4[0],300)
+								c.restoreState()
+								c.drawCentredString(270,20,partList[part])
+								viewCounter += 1
+								if viewCounter == len(partList):
+									c.setFont('Helvetica',fontSize, leading=None)
+									c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+									c.showPage()
+									break
+								c.saveState()
+								c.translate(0,660)
+								c.scale(1,-1)
+								c.drawImage(destinationFileName2+"\\"+getName(odb.name)+"\\fieldOutputs\\"+tmp+"\\"+str(tmp2)+"\\"+tmp3+"\\"+str(validInvariants)+"\\"+view+"\\"+partList[part+1]+".jpg",0,0,A4[0],300)
+								c.restoreState()
+								c.drawCentredString(270,340,partList[part+1])
+								viewCounter += 1
+								c.drawCentredString(300,800,"- " + str(pageNumber) + " -")
+								c.showPage()
 						
 	c.save()
 	print "Exported to " + name
